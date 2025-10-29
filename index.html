@@ -1,0 +1,1607 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- C&N Solutions – RDV/Facturation – Bilans + PDF + Mot de passe -->
+  <link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- === Theme assets (ajoutés) === -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>window.FontAwesomeConfig={autoReplaceSvg:'nest'};</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    /* Palette thème (si vous utilisez des classes Tailwind complémentaires) */
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { inter: ['Inter','sans-serif'] },
+          colors: {
+            primary: {
+              50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',
+              500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Libs existantes -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    /* ===== Base et corrections Safari (origine) ===== */
+    html,body{background:#f4f6fa;margin:0;padding:0;width:100%;height:100%;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    *{box-sizing:border-box}
+    input, select, textarea, button { -webkit-appearance: none; appearance: none; -webkit-appearance: none; }
+    select::-ms-expand{ display:none; }
+
+    .wrap {width:100%;max-width:460px;margin:0 auto;background:#fff;min-height:100vh;padding:12px 12px 24px;
+           font-family:'Inter',sans-serif;color:#232a38}
+    .head {display:flex;align-items:center;gap:10px;justify-content:space-between;position:sticky;top:0;z-index:10;background:#fff;padding:8px 0}
+    .title {font-size:1.05rem;font-weight:900;color:#1b47b7;margin:0}
+    .live {display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#1a7b32}
+    .dot{width:8px;height:8px;border-radius:50%;background:#1bd24e;box-shadow:0 0 0 3px rgba(27,210,78,.15)}
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+    .tab{flex:1;background:#eef3fa;color:#1c4bc7;border:none;border-radius:9px;padding:10px 10px;font-weight:800;cursor:pointer;text-align:center;font-size:.92rem}
+    .tab.active{background:#1977f2;color:#fff}
+
+    .dash{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+    .card{flex:1 1 180px;background:#f7faff;border-radius:10px;box-shadow:0 1px 7px rgba(60,110,180,.07);padding:10px 12px}
+    .card-label{font-size:12px;font-weight:600;color:#2269e5}
+    .card-value{font-size:1.15rem;font-weight:800;color:#1647a8}
+    .card-sub{font-size:11px;color:#1756b3}
+
+    .btns{display:flex;gap:6px;flex-wrap:wrap}
+    .btn{flex:1 1 200px;text-align:center;background:#1977f2;color:#fff;border:none;border-radius:10px;font-weight:700;
+         font-size:.92rem;padding:10px 12px;cursor:pointer}
+    .btn.secondary{background:#eef3fa;color:#1c4bc7}
+    .btn.light{background:#f1f6ff;color:#1b47b7}
+
+    .form-wrap{background:#f8fbff;border-radius:12px;padding:10px;margin:12px 0}
+    .form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .form select,.form input{background:#fff;color:#202b3c;border:1px solid #bed1f2;border-radius:9px;padding:10px 10px;font-size:14px;min-height:40px}
+    .form input[type="date"]{min-width:160px}
+    .form button{background:#ffd83e;color:#10253a;font-weight:800;padding:10px 14px;border-radius:9px;border:none;font-size:14px}
+
+    .notif{margin:6px auto 6px;text-align:center;color:#3c841c;font-weight:700;min-height:18px}
+
+    .monthbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+    .monthbar label{font-size:.86rem;color:#1b47b7;font-weight:800}
+    .monthbar select{flex:1;background:#fff;border:1px solid #d7e4ff;border-radius:9px;padding:8px 10px;font-size:14px;min-height:40px}
+    .monthbar .trash,.monthbar .clear{flex:1;background:#eef3fa;color:#1c4bc7;border:1px solid #cfe0ff;border-radius:10px;
+      font-weight:800;padding:10px 12px;cursor:pointer;font-size:.92rem}
+    .monthbar .trash{background:#ffe9e6;color:#c02400;border-color:#ffc4b8}
+
+    .table-wrap{background:#f7faff;border-radius:10px;box-shadow:0 1px 7px rgba(80,140,255,.07);padding:4px 2px 0 2px;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;margin-bottom:7px;min-width:680px}
+    th,td{text-align:left;font-size:13px;padding:10px 10px}
+    th{background:#e6f2ff;color:#1b73c6;font-weight:800;border-bottom:2px solid #bddafd}
+    tr:not(:last-child) td{border-bottom:1px solid #e8edf3}
+    tr:nth-child(even) td{background:#f2f8ff}
+    .btn-icon{color:#e63821;font-weight:700;border:none;background:none;cursor:pointer;font-size:16px}
+    .edit{color:#1c62bd}
+    .section{display:none}
+    .section.active{display:block}
+
+    /* Geste */
+    .geste-wrap{display:flex;align-items:center;gap:8px}
+    .geste-chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:800}
+    .geste-oui{background:#e8f8ef;color:#147a38;border:1px solid #c5edd3}
+    .geste-non{background:#fff3f1;color:#a13b27;border:1px solid #ffd6ce}
+    .geste-btn{background:#f1f6ff;border:1px solid #cfe0ff;border-radius:8px;padding:6px 10px;font-weight:800;color:#1c4bc7;cursor:pointer}
+    .amt-sub{font-size:11px;color:#7a879a;margin-top:4px}
+
+    /* === Modale Bilans === */
+    #bilanModal{display:none;position:fixed;inset:0;z-index:111;background:rgba(0,0,0,.13)}
+    #bilanContent{background:#fff;max-width:96vw;width:clamp(320px,860px,96vw);margin:7vh auto;padding:18px;border-radius:16px;
+      box-shadow:0 2px 36px rgba(20,60,160,.16);display:flex;flex-direction:column;gap:10px}
+    #bilanHeader{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    #bilanHeader h3{margin:0;font-size:1.06rem;font-weight:800;color:#1756b3}
+    .actions{display:flex;align-items:center;gap:8px}
+    .seg{display:inline-flex;border:1px solid #cfe0ff;border-radius:10px;overflow:hidden}
+    .seg button{background:#fff;border:none;padding:8px 12px;font-weight:800;color:#1b47b7;cursor:pointer}
+    .seg button.active{background:#1977f2;color:#fff}
+    .bbtn{background:#f1f6ff;border:1px solid #cfe0ff;border-radius:10px;padding:8px 12px;font-weight:800;color:#1c4bc7;cursor:pointer}
+    .bbtn.red{background:#ffe9e6;color:#c02400;border-color:#ffc4b8}
+    #bilanDetails table{width:100%;border-collapse:separate;border-spacing:0;margin-top:6px;background:#f9fbfe;border-radius:11px;
+      box-shadow:0 1.5px 16px rgba(80,110,150,.06);overflow:hidden;table-layout:fixed}
+    #bilanDetails th,#bilanDetails td{font-size:14px;padding:10px 12px;border-bottom:1px solid #e3eaf7;background:inherit;text-align:center}
+    #bilanDetails th{background:#e6f2ff;color:#1851b7;font-size:15px;font-weight:800;border-bottom:2px solid #c5daf8}
+    #bilanDetails th:first-child,#bilanDetails td:first-child{text-align:left}
+    #bilanDetails th:last-child,#bilanDetails td:last-child{text-align:right}
+    #bilanDetails tr:last-child td{border-bottom:none}
+
+    @media (min-width:700px){
+      .wrap{max-width:980px;padding:18px 24px}
+      .title{font-size:1.35rem}
+    }
+
+    /* =========== LOCK SCREEN =========== */
+    #lockScreen{position:fixed;inset:0;background:linear-gradient(180deg,#eaf2ff,#f8fbff);display:flex;align-items:center;justify-content:center;z-index:9999}
+    .lock-box{width:clamp(280px,420px,92vw);background:#fff;border:1px solid #e4ecff;border-radius:16px;padding:18px;box-shadow:0 6px 30px rgba(40,90,200,.12)}
+    .lock-title{font-weight:900;color:#1b47b7;margin:0 0 10px 0;font-size:1.1rem}
+    .lock-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+    .lock-row input{flex:1;border:1px solid #cfe0ff;border-radius:10px;min-height:42px;padding:8px 10px;font-size:14px}
+    .lock-row button{background:#1977f2;color:#fff;border:none;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}
+    .lock-note{font-size:12px;color:#4b5b7a;margin-top:8px}
+    .lock-err{min-height:18px;color:#c02400;font-weight:700;margin-top:6px}
+    .linklike{background:none;border:none;color:#1977f2;font-weight:800;cursor:pointer;padding:0}
+
+    /* =========== Modale Geste =========== */
+    #gesteModal{display:none;position:fixed;inset:0;z-index:112;background:rgba(0,0,0,.2)}
+    #gesteContent{background:#fff;width:clamp(300px,560px,95vw);margin:10vh auto;padding:16px;border-radius:14px;border:1px solid #e4ecff;
+      box-shadow:0 10px 30px rgba(40,90,200,.15)}
+    #gBody .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+    #gBody input[type="text"], #gBody input[type="number"]{flex:1;border:1px solid #cfe0ff;border-radius:8px;padding:8px 8px;min-height:38px}
+
+    /* === Inline edit (Android friendly) === */
+    td.cell-edit{vertical-align:middle}
+    td.cell-edit .in{
+      display:block;width:100%;min-height:38px;padding:8px 10px;
+      border:1px solid #bed1f2;border-radius:8px;font-size:14px;background:#fff;color:#202b3c
+    }
+    td.cell-edit .bbtn{padding:8px 10px;font-size:.92rem}
+
+    /* ==================== AJUSTEMENTS D'ALIGNEMENT & TAILLES (seulement mise en page) ==================== */
+    @media (min-width:1024px){ .wrap{ max-width:1200px; } }
+    @media (min-width:1440px){ .wrap{ max-width:1400px; } }
+    @media (min-width:1680px){ .wrap{ max-width:1560px; } }
+
+    .table-wrap table{ table-layout: fixed; }
+    .table-wrap thead th, .table-wrap tbody td{ vertical-align: middle; }
+
+    /* 1☑ 2Date 3Agence 4Commercial 5RDV 6Tarif 7TTC 8Geste 9Actions */
+    .table-wrap thead th:nth-child(1), .table-wrap tbody td:nth-child(1){ width:4%;  }
+    .table-wrap thead th:nth-child(2), .table-wrap tbody td:nth-child(2){ width:14%; }
+    .table-wrap thead th:nth-child(3), .table-wrap tbody td:nth-child(3){ width:22%; }
+    .table-wrap thead th:nth-child(4), .table-wrap tbody td:nth-child(4){ width:16%; }
+    .table-wrap thead th:nth-child(5), .table-wrap tbody td:nth-child(5){ width:7%;  text-align:right; }
+    .table-wrap thead th:nth-child(6), .table-wrap tbody td:nth-child(6){ width:8%;  text-align:right; }
+    .table-wrap thead th:nth-child(7), .table-wrap tbody td:nth-child(7){ width:14%; text-align:right; }
+    .table-wrap thead th:nth-child(8), .table-wrap tbody td:nth-child(8){ width:11%; }
+    .table-wrap thead th:nth-child(9), .table-wrap tbody td:nth-child(9){ width:4%;  }
+
+    .table-wrap tbody td:nth-child(3),
+    .table-wrap tbody td:nth-child(4){
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .table-wrap tbody td:nth-child(8) .geste-wrap{ justify-content:flex-start; gap:8px; }
+
+    /* ===== Pagination ===== */
+    .pager{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:8px 2px 12px}
+    .pager .info{font-size:.92rem;color:#1b47b7;font-weight:800}
+
+    /* ===== Saisie RDV ===== */
+    #rdvBlocks{display:flex;flex-direction:column;gap:10px;width:100%}
+    .rdv-block{
+      display:grid;grid-template-columns:minmax(220px,1.6fr) minmax(80px,0.7fr) auto;
+      grid-auto-rows:auto;gap:8px;align-items:center;background:#fff;
+      border:1px solid #cfe0ff;border-radius:12px;padding:10px 10px;box-shadow:0 1px 8px rgba(40,90,200,.06)
+    }
+    .rdv-block .clientSel{width:100%}
+    .rdv-block .agenceBadge{
+      justify-self:start;background:#eaf2ff;border:1px solid #cfe0ff;color:#1b47b7;
+      padding:4px 10px;border-radius:999px;font-size:12px
+    }
+    .rdv-block .tarifInput{width:100%}
+    .rdv-block .plus-mini{
+      background:#f1f6ff;border:1px solid #cfe0ff;border-radius:10px;padding:8px 10px;
+      font-weight:800;color:#1c4bc7;cursor:pointer;justify-self:start
+    }
+    .rdv-block .rm{
+      background:#ffe9e6;border:1px solid #ffc4b8;color:#c02400;border-radius:10px;
+      padding:8px 10px;font-weight:800;cursor:pointer;justify-self:end
+    }
+    .commsWrap{display:flex;gap:8px;flex-wrap:wrap;grid-column:1/-1}
+    .oneComm{
+      display:grid;grid-template-columns:1.4fr 0.9fr auto;gap:6px;align-items:center;
+      background:#f7fbff;border:1px solid #dfe9ff;border-radius:10px;padding:8px
+    }
+    .oneComm .commSelect{width:100%}
+    .oneComm .commRdv{width:100%}
+    .oneComm .x{
+      background:#ffe9e6;border:1px solid #ffc4b8;color:#c02400;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:800
+    }
+    .fallbackRow{grid-column:1/-1;display:flex;gap:8px}
+
+    /* === FACTURATION — présentation === */
+    #section-rdv .dash{gap:12px;}
+    #section-rdv .card{border:1px solid #cfe0ff;border-radius:14px;background:linear-gradient(180deg,#f7fbff, #f2f7ff);box-shadow:0 6px 20px rgba(30,70,160,.07);}
+    #section-rdv .card-label{letter-spacing:.2px;text-transform:uppercase;}
+    #section-rdv .btns{position:sticky; top:56px; z-index:6;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(8px);border:1px solid #e7efff;border-radius:12px;padding:8px;box-shadow:0 8px 26px rgba(50,90,170,.08);}
+    #section-rdv .btn{border:1px solid #d7e4ff;box-shadow:0 2px 10px rgba(25,119,242,.08);}
+    #section-rdv .btn.secondary{border-color:#dbe6ff}
+    #section-rdv .btn.light{border-color:#dbe6ff}
+    #section-rdv .form-wrap{border:1px solid #e1ecff;box-shadow:0 6px 22px rgba(40,90,200,.06);position:relative;}
+    #section-rdv .form-wrap::before{content:'Saisie RDV · Facturation';position:absolute; top:-10px; left:12px;padding:4px 10px; font-size:12px; font-weight:800;color:#1c4bc7; background:#eaf2ff; border:1px solid #cfe0ff; border-radius:999px;}
+    #section-rdv .monthbar{position:sticky; top:114px; z-index:5;background:rgba(255,255,255,.94);backdrop-filter:saturate(180%) blur(8px);border:1px solid #e7efff;border-radius:12px;padding:10px;box-shadow:0 8px 26px rgba(50,90,170,.06);}
+    #section-rdv .monthbar::before{content:'Filtres';font-size:12px; font-weight:800; color:#1b47b7;margin-right:8px; background:#eef5ff; border:1px solid #d4e4ff; border-radius:999px; padding:4px 8px;}
+    #section-rdv .table-wrap{border:1px solid #e1ecff;border-radius:14px;box-shadow:0 10px 30px rgba(40,80,160,.07);overflow:hidden;}
+    #section-rdv table thead th{position:sticky; top:0; z-index:1;background:#eaf3ff;border-bottom:2px solid #cfe0ff;}
+    #section-rdv table tbody tr{ transition:background .15s ease }
+    #section-rdv table tbody tr:hover td{ background:#eef6ff }
+    #section-rdv .pager{background:#fff;border:1px solid #e7efff;border-radius:10px;padding:6px 8px;box-shadow:0 6px 16px rgba(50,90,170,.06);}
+
+    /* === RÉPERTOIRE — alignements === */
+    #section-clients .form{display:grid;grid-template-columns:minmax(220px,1.2fr) minmax(220px,1.2fr) minmax(120px,0.6fr) auto;gap:8px;align-items:center}
+    #section-clients .form input{width:100%}
+    #section-clients .form-wrap{border:1px solid #e1ecff;box-shadow:0 6px 22px rgba(40,90,200,.06);margin-top:8px}
+    #section-clients .table-wrap{border:1px solid #e1ecff;border-radius:12px;box-shadow:0 8px 24px rgba(40,80,160,.06);overflow:hidden}
+    #section-clients .table-wrap table{table-layout:fixed}
+    #section-clients .table-wrap thead th:nth-child(1),#section-clients .table-wrap tbody td:nth-child(1){width:42%}
+    #section-clients .table-wrap thead th:nth-child(2),#section-clients .table-wrap tbody td:nth-child(2){width:38%}
+    #section-clients .table-wrap thead th:nth-child(3),#section-clients .table-wrap tbody td:nth-child(3){width:14%;text-align:right}
+    #section-clients .table-wrap thead th:nth-child(4),#section-clients .table-wrap tbody td:nth-child(4){width:6%;text-align:center}
+    #section-clients .table-wrap tbody td:nth-child(1),
+    #section-clients .table-wrap tbody td:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #section-clients .table-wrap tbody td:nth-child(3){font-weight:700}
+    #section-clients .table-wrap tbody td:nth-child(4){vertical-align:middle}
+
+    /* ===== Fallback gap ===== */
+    @supports not (gap: 1px) {
+      :root { --flex-gap-fallback: 6px; }
+      .tabs, .dash, .btns, .form, .geste-wrap, .actions, .seg, .commsWrap, .oneComm, .monthbar {
+        margin: calc(var(--flex-gap-fallback) * -0.5);
+        display: flex; flex-wrap: wrap; align-items: center;
+      }
+      .tabs > *, .dash > *, .btns > *, .form > *, .geste-wrap > *, .actions > *, .seg > button, .commsWrap > *, .oneComm > * , .monthbar > * {
+        margin: calc(var(--flex-gap-fallback) * 0.5);
+      }
+      .rdv-block { gap: 8px; }
+      .table-wrap { padding: 4px 0 0 0; }
+    }
+
+    /* ====== INTEGRATION VISUELLE DU THÈME (sans toucher à la logique) ====== */
+    /* Fond général en dégradé doux */
+    html, body { background: linear-gradient(135deg,#f8fafc, #eff6ff 45%, #eef2ff 100%) !important; }
+
+    /* Conteneur principal façon "glass" */
+    .wrap{
+      background: rgba(255,255,255,.85) !important;
+      border:1px solid #dbeafe;
+      border-radius:24px;
+      box-shadow: 0 25px 60px rgba(30,64,175,.12);
+      backdrop-filter: saturate(180%) blur(8px);
+    }
+
+    /* Header collant + bordure + titre dégradé */
+    .head{ background:rgba(255,255,255,.95)!important; border-bottom:1px solid #dbeafe; padding:14px 12px }
+    .title{
+      background: linear-gradient(90deg,#1e40af,#4f46e5);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      letter-spacing:.2px
+    }
+    .live{
+      padding:6px 10px;border-radius:999px;background:#ecfdf5;border:1px solid #bbf7d0;color:#166534;font-weight:800
+    }
+    .dot{animation: pulse 1.4s infinite; box-shadow:0 0 0 6px rgba(16,185,129,.18)}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(.9)}100%{transform:scale(1)}}
+
+    /* Onglets façon pilules */
+    .tabs{padding:6px;background:linear-gradient(90deg,#eff6ff,#eef2ff);border:1px solid #dbeafe;border-radius:18px}
+    .tab{
+      border:2px solid #dbeafe; border-radius:18px; background:rgba(255,255,255,.9);
+      color:#1e40af; transition:all .2s ease; box-shadow:0 4px 12px rgba(2,132,199,.06)
+    }
+    .tab:hover{ background:#f8fafc }
+    .tab.active{
+      background:linear-gradient(90deg,#2563eb,#4f46e5)!important;
+      border-color:transparent; color:#fff!important;
+      box-shadow:0 10px 22px rgba(59,130,246,.25)
+    }
+
+    /* Cartes KPI façon thème */
+    .card{
+      border:1px solid #dbeafe; border-radius:22px !important;
+      background:linear-gradient(180deg,#f0f7ff,#eaf2ff);
+      box-shadow:0 18px 38px rgba(37,99,235,.10)!important; padding:16px 16px
+    }
+    .card-label{color:#0369a1!important}
+    .card-value{color:#0c4a6e!important;font-size:1.35rem}
+
+    /* Boutons principaux */
+    .btn{
+      border:2px solid #dbeafe; border-radius:16px!important;
+      background:linear-gradient(90deg,#2563eb,#4f46e5)!important;
+      color:#fff!important; box-shadow:0 14px 28px rgba(37,99,235,.22)
+    }
+    .btn.secondary{
+      background:#ffffff!important;color:#1e40af!important;border-color:#cfe0ff!important;
+    }
+    .btn.light{
+      background:linear-gradient(180deg,#f8fbff,#f1f5ff)!important;color:#1b47b7!important
+    }
+
+    /* Barres filtres façon "glass" */
+    .monthbar{
+      background:rgba(255,255,255,.9); border:1px solid #dbeafe; border-radius:16px; padding:10px;
+      box-shadow:0 10px 24px rgba(2,132,199,.08)
+    }
+    .monthbar .clear{
+      background:#ffffff; border:2px solid #dbeafe; color:#1e40af
+    }
+    .monthbar .trash{
+      background:#fff1f2; border:2px solid #fecaca; color:#b91c1c
+    }
+
+    /* Tableau — en-tête dégradée + hover */
+    th{
+      background: linear-gradient(90deg,#e0f2fe,#e0e7ff) !important;
+      color:#1e3a8a !important; border-bottom:2px solid #bfdbfe !important
+    }
+    tbody tr:hover td{ background:#eff6ff !important }
+
+    /* Modales plus "glass" */
+    #bilanContent, #gesteContent{
+      border:1px solid #dbeafe; background:rgba(255,255,255,.96);
+      backdrop-filter:saturate(180%) blur(8px)
+    }
+
+    /* Ecran de verrouillage façon thème */
+    #lockScreen{
+      background:linear-gradient(135deg,rgba(15,23,42,.06),rgba(59,130,246,.10)), radial-gradient(1200px 600px at 10% 0%,#1e40af22,transparent 60%), radial-gradient(1200px 600px at 90% 0%,#4f46e522,transparent 60%) !important;
+    }
+    .lock-box{
+      background:rgba(255,255,255,.95)!important; border-radius:24px!important; border:1px solid #dbeafe!important;
+      box-shadow:0 30px 70px rgba(30,64,175,.20)!important; padding:22px!important
+    }
+    .lock-title{
+      background: linear-gradient(90deg,#1e40af,#4f46e5);
+      -webkit-background-clip:text; background-clip:text; color:transparent
+    }
+    /* Scrollbar masquée (comme le thème) */
+    ::-webkit-scrollbar { display:none; }
+  </style>
+</head>
+<body>
+  <!-- =============== LOCK SCREEN =============== -->
+  <div id="lockScreen" style="display:flex">
+    <div class="lock-box">
+      <h3 class="lock-title" id="lockTitle">Accès admin</h3>
+      <div id="lockSetup" style="display:none">
+        <div>Définir le <b>mot de passe admin</b> (création initiale)</div>
+        <div class="lock-row"><input type="password" id="pw1" placeholder="Nouveau mot de passe"><button onclick="createAdminPassword()"><i class="fa-solid fa-check mr-1"></i>Créer</button></div>
+        <div class="lock-row"><input type="password" id="pw2" placeholder="Confirmer"></div>
+        <div class="lock-err" id="lockErr"></div>
+        <div class="lock-note">Mot de passe stocké dans Firestore (<code>config/access</code>). Pas de cookies requis.</div>
+        <div class="lock-note">Déjà un mot de passe ? <button class="linklike" onclick="showLock('login')">Me connecter</button></div>
+      </div>
+      <div id="lockLogin" style="display:block">
+        <div>Veuillez saisir le <b>mot de passe admin</b> pour accéder à l’application.</div>
+        <div class="lock-row"><input type="password" id="pwLogin" placeholder="Mot de passe"><button onclick="tryLogin()"><i class="fa-solid fa-unlock mr-1"></i>Entrer</button></div>
+        <div class="lock-err" id="lockErr2"></div>
+        <div class="lock-note">
+          Pas encore de mot de passe ?
+          <button class="linklike" onclick="showLock('setup')">Créer maintenant</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" id="app" style="display:none">
+    <div class="head">
+      <div class="title">C&N Solutions — RDV / Facturation</div>
+      <div class="live">
+        <span class="dot" id="liveDot"></span> En ligne
+        <button title="Changer mot de passe" onclick="changePassword()" style="margin-left:10px; background:#eef3fa;color:#1c4bc7;border:1px solid #cfe0ff;border-radius:8px;padding:4px 8px;font-weight:800;cursor:pointer">🔐</button>
+      </div>
+    </div>
+
+    <!-- === Onglets === -->
+    <div class="tabs">
+      <button id="tabRdv" class="tab active" onclick="switchTab('rdv')"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i>RDV / Facturation</button>
+      <button id="tabClients" class="tab" onclick="switchTab('clients')"><i class="fa-solid fa-address-book" style="margin-right:6px"></i>Répertoire</button>
+    </div>
+
+    <!-- === RDV === -->
+    <div id="section-rdv" class="section active">
+      <div class="dash" id="dashboard"></div>
+
+      <div class="btns">
+        <button class="btn" onclick="showBilanCommercial()"><i class="fa-solid fa-chart-bar" style="margin-right:6px"></i>Bilan Commercial/Agence</button>
+        <button class="btn light" onclick="exportMonthPdfAll()"><i class="fa-solid fa-file-pdf" style="margin-right:6px"></i>Télécharger PDF (mois)</button>
+        <button class="btn" onclick="window.open('https://www.indy.fr/','_blank')"><i class="fa-solid fa-file-invoice" style="margin-right:6px"></i>Facture</button>
+      </div>
+
+      <!-- Form saisie RDV -->
+      <div class="form-wrap">
+        <form id="rdvForm" class="form" autocomplete="off">
+          <input type="date" name="date" id="dateSelect" required>
+          <button type="button" class="btn secondary" onclick="addRdvBlock()"><i class="fa-solid fa-plus" style="margin-right:6px"></i>Ajouter un RDV</button>
+          <div id="rdvBlocks"></div>
+          <button type="submit" id="submit">OK</button>
+          <input type="hidden" name="editId" value="">
+        </form>
+        <div id="notif" class="notif"></div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="monthbar">
+        <label for="moisFiltre">Mois</label>
+        <select id="moisFiltre"></select>
+        <label for="filtreAgence">Agence</label>
+        <select id="filtreAgence"></select>
+        <label for="filtreCommercial">Commercial</label>
+        <select id="filtreCommercial"></select>
+        <button class="clear" id="btnClearFiltres"><i class="fa-solid fa-filter-circle-xmark" style="margin-right:6px"></i>Effacer filtres</button>
+        <button class="trash" onclick="deleteSelected()"><i class="fa-solid fa-trash" style="margin-right:6px"></i>Supprimer sélection</button>
+      </div>
+
+      <!-- Tableau RDV -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
+            <th>Date</th><th>Agence</th><th>Commercial</th><th>RDV</th><th>Tarif</th><th>TTC (€)</th><th>Geste</th><th></th>
+          </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <!-- Pagination -->
+      <div class="pager" id="pager"></div>
+    </div>
+
+    <!-- === REPERTOIRE === -->
+    <div id="section-clients" class="section">
+      <div class="form-wrap">
+        <form id="clientForm" class="form" autocomplete="off">
+          <input type="text" id="clientAgence" placeholder="Agence" style="min-width:220px">
+          <input type="text" id="clientCommerciaux" placeholder="Commerciaux (séparés par des virgules)" style="min-width:220px">
+          <input type="number" id="clientTarif" placeholder="Tarif RDV (€)" min="0" step="1" style="width:120px">
+          <button type="submit" id="clientSubmit">Enregistrer</button>
+          <input type="hidden" id="clientEditId" value="">
+        </form>
+        <div id="notifClients" class="notif"></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr><th>Agence</th><th>Commerciaux</th><th>Tarif RDV (€)</th><th style="width:110px"></th></tr>
+          </thead>
+          <tbody id="tbodyClients"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- === Modale Bilans === -->
+  <div id="bilanModal">
+    <div id="bilanContent">
+      <div id="bilanHeader">
+        <h3 id="bilanTitle">Bilan</h3>
+        <div class="actions">
+          <div class="seg" id="segPeriod">
+            <button id="segMonth" class="active" onclick="setBilanPeriod('month')">Mois</button>
+            <button id="segYear" onclick="setBilanPeriod('year')">Annuel</button>
+          </div>
+          <button class="bbtn red" onclick="closeBilan()">✕ Fermer</button>
+        </div>
+      </div>
+      <div id="bilanDetails"></div>
+    </div>
+  </div>
+
+  <!-- === Modale Geste === -->
+  <div id="gesteModal">
+    <div id="gesteContent">
+      <h3 style="margin:0;font-size:1.05rem;color:#1756b3">Geste commercial</h3>
+      <div id="gInfo" style="margin-top:4px;color:#4b5b7a;font-size:13px"></div>
+      <div id="gBody">
+        <div class="row">
+          <label style="display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="gEnable"> Activer le geste commercial
+          </label>
+        </div>
+        <div id="gFields" style="display:none">
+          <div class="row">
+            <input type="text" id="gClient" placeholder="Nom du client">
+            <input type="text" id="gVehicule" placeholder="Véhicule">
+          </div>
+          <div class="row">
+            <input type="number" id="gMontant" placeholder="Montant du geste (€)" min="0" step="1">
+          </div>
+          <div class="row" id="gPreview" style="font-size:12px;color:#1b47b7"></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+        <button class="bbtn red" onclick="closeGesteModal()">Fermer</button>
+        <button class="bbtn" onclick="saveGeste()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* ===== Utils & Firebase ===== */
+  const MONTHS_FR=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=n=>Number(n||0).toLocaleString("fr-FR",{minimumFractionDigits:0});
+  const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+  const aKey=a=>(a||"").trim().toLowerCase().replace(/\s+/g," ").replace(/[^a-z0-9 ]/g,"").replace(/\s+/g,'');
+  function toJSDate(v){if(!v)return null;if(v instanceof Date)return v;if(typeof v==='object'&&v.seconds!=null)return new Date(v.seconds*1000);if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)){const[Y,M,D]=v.split('-').map(Number);return new Date(Y,M-1,D);}const d=new Date(v);return isNaN(d)?null:d;}
+  function formatDateLong(v){const d=toJSDate(v); if(!d) return ''; return d.toLocaleDateString('fr-FR',{day:'numeric', month:'long', year:'numeric'});}
+  function labelMonth(mm){ if(!mm) return ''; const [Y,M]=mm.split('-').map(Number); return `${MONTHS_FR[(M||1)-1]} ${Y}`; }
+  function monthKey(date){ if(typeof date==='string'){ date=toJSDate(date);} return `${date.getFullYear()}-${pad(date.getMonth()+1)}`;}
+  function pdfFmt(n){ const s=Number(n||0).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:0}); return s.replace(/\u202F/g,' '); }
+  function notify(t,c){const n=document.getElementById('notif');if(!n)return;n.textContent=t;n.style.color=c||"#1a7b32";setTimeout(()=>n.textContent="",2000)}
+
+  const firebaseConfig={apiKey:"AIzaSyC99x3m-J0M14YWL_PhD3-X8GyZTXwkfes",authDomain:"bilan-rdv-pro.firebaseapp.com",projectId:"bilan-rdv-pro",storageBucket:"bilan-rdv-pro.appspot.com",messagingSenderId:"453220474263",appId:"1:453220474263:web:e1226ff79656af1eee78d2",measurementId:"G-4MPLFWWE2M"};
+  const COLLECTION="rdv_ajouts", CLIENTS_COLLECTION="clients";
+  firebase.initializeApp(firebaseConfig);
+  const db=firebase.firestore();
+
+  /* ===== Storage Safe ===== */
+  const SafeStore = (()=>{
+    let mem={};
+    const getLS = ()=>{ try{return window.localStorage;}catch(_){return null;} };
+    const getSS = ()=>{ try{return window.sessionStorage;}catch(_){return null;} };
+    return {
+      get(k){ const ls=getLS(); if(ls){ try{ return ls.getItem(k);}catch(_){} }
+              const ss=getSS(); if(ss){ try{ return ss.getItem(k);}catch(_){} }
+              return mem[k]??null; },
+      set(k,v){ const ls=getLS(); if(ls){ try{ ls.setItem(k,v); return;}catch(_){} }
+                const ss=getSS(); if(ss){ try{ ss.setItem(k,v); return;}catch(_){} }
+                mem[k]=v; },
+      remove(k){ const ls=getLS(); if(ls){ try{ ls.removeItem(k);}catch(_){} }
+                 const ss=getSS(); if(ss){ try{ ss.removeItem(k);}catch(_){} }
+                 delete mem[k]; }
+    };
+  })();
+
+  /* ===== SHA-256 (WebCrypto + fallback) ===== */
+  function utf8Bytes(s){ if (window.TextEncoder) return new TextEncoder().encode(s); const u=unescape(encodeURIComponent(s)); const a=new Uint8Array(u.length); for(let i=0;i<u.length;i++) a[i]=u.charCodeAt(i); return a; }
+  function sha256_fallback_hex(str){
+    const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25a,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    const H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    function rotr(x,n){return (x>>>n)|(x<<(32-n));} function ch(x,y,z){return (x&y)^(~x&z);} function maj(x,y,z){return (x&y)^(x&z)^(y&z);}
+    function Sigma0(x){return rotr(x,2)^rotr(x,13)^rotr(x,22);} function Sigma1(x){return rotr(x,6)^rotr(x,11)^rotr(x,25);}
+    function sigma0(x){return rotr(x,7)^rotr(x,18)^(x>>>3);} function sigma1(x){return rotr(x,17)^rotr(x,19)^(x>>>10);}
+    const bytes=utf8Bytes(str); const l=bytes.length; const bitLenHi=Math.floor((l*8)/0x100000000); const bitLenLo=(l*8)>>>0;
+    const withOne=l+1; let padLen=(withOne%64<=56)?(56-(withOne%64)):(64-(withOne%64)+56); const totalLen=l+1+padLen+8;
+    const buf=new Uint8Array(totalLen); buf.set(bytes,0); buf[l]=0x80;
+    buf[totalLen-8]=(bitLenHi>>>24)&255; buf[totalLen-7]=(bitLenHi>>>16)&255; buf[totalLen-6]=(bitLenHi>>>8)&255; buf[totalLen-5]=(bitLenHi)&255;
+    buf[totalLen-4]=(bitLenLo>>>24)&255; buf[totalLen-3]=(bitLenLo>>>16)&255; buf[totalLen-2]=(bitLenLo>>>8)&255; buf[totalLen-1]=(bitLenLo)&255;
+    const w=new Uint32Array(64);
+    for(let i=0;i<buf.length;i+=64){
+      for(let t=0;t<16;t++){const j=i+t*4; w[t]=(buf[j]<<24)|(buf[j+1]<<16)|(buf[j+2]<<8)|(buf[j+3]);}
+      for(let t=16;t<64;t++){w[t]=(sigma1(w[t-2])+w[t-7]+sigma0(w[t-15])+w[t-16])>>>0;}
+      let a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+      for(let t=0;t<64;t++){const T1=(h+Sigma1(e)+ch(e,f,g)+K[t]+w[t])>>>0; const T2=(Sigma0(a)+maj(a,b,c))>>>0;
+        h=g; g=f; f=e; e=(d+T1)>>>0; d=c; c=b; b=a; a=(T1+T2)>>>0;}
+      H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0; H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+    }
+    const toHex=n=>('00000000'+n.toString(16)).slice(-8); return H.map(toHex).join('');
+  }
+  async function sha256(text){
+    try{ if (window.crypto && window.crypto.subtle){ const enc=new TextEncoder().encode(text); const buf=await crypto.subtle.digest('SHA-256',enc); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); } }
+    catch(_){}
+    return sha256_fallback_hex(text);
+  }
+
+  /* ===== Access ===== */
+  const ACCESS_DOC = db.collection('config').doc('access');
+  let ADMIN_HASH_REMOTE = null;
+  let clientsUnsub=null, rdvUnsub=null;
+
+  /* >>>>>>>>>>>>> MODIFIE : focus + bascule login/setup <<<<<<<<<<<<< */
+  function showLock(mode){
+    document.getElementById('lockScreen').style.display='flex';
+    document.getElementById('app').style.display='none';
+    document.getElementById('lockSetup').style.display = (mode==='setup')?'block':'none';
+    document.getElementById('lockLogin').style.display = (mode==='login')?'block':'none';
+    document.getElementById('lockTitle').textContent = (mode==='setup')?'Accès admin — première configuration':'Accès admin';
+
+    // Focus auto dans le bon champ
+    setTimeout(()=>{
+      const focusId = (mode==='setup') ? 'pw1' : 'pwLogin';
+      const el = document.getElementById(focusId);
+      if (el) { el.focus(); if (el.select) el.select(); }
+    }, 0);
+  }
+
+  async function loadAccess(){
+    try{
+      const snap = await ACCESS_DOC.get();
+      if(!snap.exists){ showLock('setup'); }
+      else{
+        ADMIN_HASH_REMOTE = snap.data()?.adminHash || null;
+        const saved = SafeStore.get('cn_admin_token') || '';
+        if(saved && ADMIN_HASH_REMOTE && saved===ADMIN_HASH_REMOTE){ unlockApp(); } else { showLock('login'); }
+      }
+    }catch(e){ showLock('login'); const el=document.getElementById('lockErr2'); if(el) el.textContent = "Erreur Firestore: "+(e?.message||e); }
+  }
+  async function createAdminPassword(){
+    const p1=document.getElementById('pw1').value||'', p2=document.getElementById('pw2').value||''; const err=document.getElementById('lockErr'); err.textContent='';
+    if(p1.length<4){ err.textContent="Mot de passe trop court (≥ 4 caractères)."; return; }
+    if(p1!==p2){ err.textContent="Les mots de passe ne correspondent pas."; return; }
+    try{ const h=await sha256(p1); await ACCESS_DOC.set({adminHash:h,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); ADMIN_HASH_REMOTE=h; SafeStore.set('cn_admin_token',h); unlockApp(); }
+    catch(e){ err.textContent="Erreur Firestore: "+(e?.message||e); }
+  }
+  async function tryLogin(){
+    const pwd=document.getElementById('pwLogin').value||''; const err=document.getElementById('lockErr2'); err.textContent='';
+    try{
+      const h=await sha256(pwd);
+      if(!ADMIN_HASH_REMOTE){ const snap=await ACCESS_DOC.get(); ADMIN_HASH_REMOTE=snap.data()?.adminHash||null; }
+      if(h===ADMIN_HASH_REMOTE){ SafeStore.set('cn_admin_token',h); unlockApp(); } else { err.textContent="Mot de passe incorrect."; }
+    }catch(e){ err.textContent="Erreur: "+(e?.message||e); }
+  }
+  async function changePassword(){
+    try{
+      const current=prompt("Mot de passe actuel :"); if(current===null) return;
+      const hCur=await sha256(current); const snap=await ACCESS_DOC.get(); const remote=snap.data()?.adminHash||'';
+      if(hCur!==remote){ alert("Mot de passe actuel incorrect."); return; }
+      const p1=prompt("Nouveau mot de passe (≥ 4 caractères) :"); if(p1===null||p1.length<4){ alert("Mot de passe trop court."); return; }
+      const p2=prompt("Confirmez le nouveau mot de passe :"); if(p1!==p2){ alert("La confirmation ne correspond pas."); return; }
+      const hNew=await sha256(p1); await ACCESS_DOC.set({adminHash:hNew,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      SafeStore.set('cn_admin_token',hNew); ADMIN_HASH_REMOTE=hNew; alert("Mot de passe changé.");
+    }catch(e){ alert("Erreur: "+(e?.message||e)); }
+  }
+  function unlockApp(){ document.getElementById('lockScreen').style.display='none'; document.getElementById('app').style.display='block'; initAppListeners(); }
+
+  /* ===== Tabs & Month options ===== */
+  function switchTab(which){
+    document.getElementById('tabRdv').classList.toggle('active', which==='rdv');
+    document.getElementById('tabClients').classList.toggle('active', which==='clients');
+    document.getElementById('section-rdv').classList.toggle('active', which==='rdv');
+    document.getElementById('section-clients').classList.toggle('active', which==='clients');
+  }
+
+  /* >>>>>>>>>>>>> AJOUT : Sélecteur de mois limité (depuis sept. 2025 -> mois courant) <<<<<<<<<<<<< */
+  const APP_START_YEAR = 2025;
+  const APP_START_MONTH = 9; // Septembre
+
+  function buildMonthOptionsLimited(id, startYear=APP_START_YEAR, startMonth=APP_START_MONTH){
+    const sel=document.getElementById(id); if(!sel) return;
+    sel.innerHTML='';
+    const now=new Date();
+    const endYear = now.getFullYear();
+    const endMonth= now.getMonth()+1; // 1..12
+
+    let y=startYear, m=startMonth;
+    while (y<endYear || (y===endYear && m<=endMonth)){
+      const value = `${y}-${pad(m)}`;
+      const label = `${MONTHS_FR[m-1]} ${y}`;
+      sel.appendChild(new Option(label, value));
+      m++; if(m>12){ m=1; y++; }
+    }
+    // Valeur par défaut : mois courant
+    sel.value = `${endYear}-${pad(endMonth)}`;
+  }
+
+  /* ===== Clients ===== */
+  const clientForm=document.getElementById('clientForm');
+  const clientAgence=document.getElementById('clientAgence');
+  const clientCommerciaux=document.getElementById('clientCommerciaux');
+  const clientTarif=document.getElementById('clientTarif');
+  const clientEditId=document.getElementById('clientEditId');
+  const notifClients=document.getElementById('notifClients');
+  const tbodyClients=document.getElementById('tbodyClients');
+  function notifyClients(t,c){notifClients.textContent=t; notifClients.style.color=c||"#1a7b32"; setTimeout(()=>notifClients.textContent="",1700);}
+
+  let clientsRows=[];
+  const DEFAULT_CLIENTS=[
+    {agence:"ID Auto La Roche-sur-Yon", commerciaux:["Loïc","Julien","Marie-Anne","Christophe"], tarif:60},
+    {agence:"MVB Auto Bordeaux", commerciaux:[], tarif:50},
+    {agence:"Elimat Auto", commerciaux:[], tarif:50},
+  ];
+  async function seedClientsIfEmpty(count){
+    try{ if(count>0) return;
+      const batch=db.batch();
+      DEFAULT_CLIENTS.forEach(c=>{const ref=db.collection(CLIENTS_COLLECTION).doc(); batch.set(ref,{...c,nomKey:aKey(c.agence||"client"),updatedAtTS:firebase.firestore.FieldValue.serverTimestamp()});});
+      await batch.commit();
+    }catch(e){}
+  }
+  function startClientsListener(){
+    return db.collection(CLIENTS_COLLECTION).onSnapshot(async snap=>{
+      clientsRows=[]; snap.forEach(doc=>{clientsRows.push({id:doc.id,...doc.data()});});
+      const seen=new Set(); clientsRows=clientsRows.filter(c=>{const k=aKey(`${c.agence||""}`); if(seen.has(k)) return false; seen.add(k); return true;});
+      clientsRows.sort((a,b)=> (a.agence||"").localeCompare(b.agence||""));
+      await seedClientsIfEmpty(clientsRows.length);
+      renderClientsTable(); rebuildAllClientSelects(); rebuildMonthFilters(); renderTable(); renderDashboard();
+    });
+  }
+  clientForm?.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const agence=(clientAgence.value||"").trim();
+    const commerciaux=(clientCommerciaux.value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    const tarif=clientTarif.value===""?null:Number(clientTarif.value);
+    if(!agence){ notifyClients("Renseigne l’AGENCE","#c02400"); return; }
+    const base={agence,commerciaux,tarif,nomKey:aKey(agence),updatedAtTS:firebase.firestore.FieldValue.serverTimestamp()};
+    const id=clientEditId.value;
+    try{ if(id) await db.collection(CLIENTS_COLLECTION).doc(id).set(base,{merge:true}); else await db.collection(CLIENTS_COLLECTION).add(base);
+         clientForm.reset(); clientEditId.value=""; notifyClients(id?"Modifié":"Ajouté");
+         rebuildAllClientSelects(); rebuildMonthFilters(); renderTable(); renderDashboard();
+    }catch(err){notifyClients("Erreur Firestore: "+err.message,"#c02400");}
+  });
+  function renderClientsTable(){
+    tbodyClients.innerHTML="";
+    clientsRows.forEach(c=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${c.agence||"—"}</td>
+                    <td>${Array.isArray(c.commerciaux)?c.commerciaux.join(", "):""}</td>
+                    <td>${c.tarif!=null?fmt(c.tarif):""}</td>
+                    <td>
+                      <button class="btn-icon edit" onclick="editClient('${c.id}')">✎</button>
+                      <button class="btn-icon" onclick="delClient('${c.id}')">✕</button>
+                    </td>`;
+      tbodyClients.appendChild(tr);
+    });
+  }
+  window.editClient=id=>{const c=clientsRows.find(x=>x.id===id); if(!c)return; clientEditId.value=c.id; clientAgence.value=c.agence||""; clientCommerciaux.value=(Array.isArray(c.commerciaux)?c.commerciaux.join(", "):""); clientTarif.value=(c.tarif!=null?c.tarif:""); window.scrollTo(0,clientForm.offsetTop-8);};
+  window.delClient=async id=>{if(!confirm("Supprimer cette agence ?"))return; await db.collection(CLIENTS_COLLECTION).doc(id).delete(); notifyClients("Agence supprimée","#c02400"); rebuildAllClientSelects(); rebuildMonthFilters(); renderTable(); renderDashboard();};
+
+  /* ===== RDV (saisie) ===== */
+  const rdvForm=document.getElementById('rdvForm');
+  const dateInput=document.getElementById('dateSelect');
+  const blocksWrap=document.getElementById('rdvBlocks');
+  function buildClientOptionsHTML(){
+    const seen=new Set();
+    return clientsRows.map(c=>{
+      const key=aKey(`${c.agence||""}`); if(seen.has(key)) return ""; seen.add(key);
+      return `<option value="${c.id}">${c.agence||"Agence"}</option>`;
+    }).join('');
+  }
+  function rebuildAllClientSelects(){
+    const selects = blocksWrap.querySelectorAll('.clientSel');
+    selects.forEach(sel=>{
+      const current=sel.value;
+      sel.innerHTML = buildClientOptionsHTML() || `<option value="">— Aucune agence —</option>`;
+      if(current && [...sel.options].some(o=>o.value===current)) sel.value=current; else sel.value=sel.options[0]?.value||"";
+      sel.dispatchEvent(new Event('change'));
+    });
+  }
+  function makeCommRow(commsArray){
+    const row=document.createElement('div'); row.className='oneComm';
+    const sel=document.createElement('select'); sel.className='commSelect';
+    sel.innerHTML = `<option value="">— Choisir —</option>` + (commsArray||[]).map(c=>`<option>${c}</option>`).join('');
+    const rdv=document.createElement('input'); rdv.type='number'; rdv.className='commRdv'; rdv.min='1'; rdv.placeholder='RDV'; rdv.style.width='80px'; rdv.value='5';
+    const x=document.createElement('button'); x.type='button'; x.className='x'; x.textContent='×'; x.onclick=()=> row.parentElement.removeChild(row);
+    row.appendChild(sel); row.appendChild(rdv); row.appendChild(x);
+    return row;
+  }
+  function makeBlock(){
+    const div=document.createElement('div'); div.className='rdv-block';
+    div.innerHTML=`
+      <select class="clientSel" required style="min-width:240px"></select>
+      <span class="agenceBadge pill" title="Agence"></span>
+      <div class="commsWrap" style="display:none"></div>
+      <button type="button" class="plus-mini" style="display:none">+ Commercial</button>
+      <div class="fallbackRow" style="display:none">
+        <input type="number" class="fallbackRdv" min="1" placeholder="RDV" style="width:90px">
+      </div>
+      <input type="number" class="tarifInput" min="0" placeholder="Tarif" style="width:90px">
+      <button type="button" class="rm">—</button>
+    `;
+    const clientSel=div.querySelector('.clientSel');
+    const agenceBadge=div.querySelector('.agenceBadge');
+    const commsWrap=div.querySelector('.commsWrap');
+    const addCommBtn=div.querySelector('.plus-mini');
+    const fallbackRow=div.querySelector('.fallbackRow');
+    const fallbackRdv=div.querySelector('.fallbackRdv');
+    const tarifInput=div.querySelector('.tarifInput');
+    const rmBtn=div.querySelector('.rm');
+
+    clientSel.innerHTML = buildClientOptionsHTML() || `<option value="">— Aucune agence —</option>`;
+    clientSel.addEventListener('change', ()=>{
+      const id=clientSel.value;
+      const cli=clientsRows.find(c=>c.id===id);
+      if(!cli){
+        agenceBadge.textContent=''; tarifInput.value='';
+        commsWrap.innerHTML=''; commsWrap.style.display='none'; addCommBtn.style.display='none';
+        fallbackRow.style.display='none'; fallbackRdv.value='';
+        return;
+      }
+      agenceBadge.textContent = cli.agence || '';
+      if(cli.tarif!=null && cli.tarif!=='') tarifInput.value = cli.tarif;
+
+      const hasComms = Array.isArray(cli.commerciaux) && cli.commerciaux.length>0;
+      if(hasComms){
+        commsWrap.innerHTML='';
+        const unique=[...new Set(cli.commerciaux.filter(Boolean))];
+        commsWrap.appendChild( makeCommRow(unique) );
+        commsWrap.style.display='flex';
+        addCommBtn.style.display='';
+        addCommBtn.onclick=()=> commsWrap.appendChild( makeCommRow(unique) );
+        fallbackRow.style.display='none'; fallbackRdv.value='';
+      }else{
+        commsWrap.innerHTML=''; commsWrap.style.display='none';
+        addCommBtn.style.display='none';
+        fallbackRow.style.display='flex';
+        if(!fallbackRdv.value) fallbackRdv.value='1';
+      }
+    });
+
+    rmBtn.addEventListener('click', ()=>{
+      if(blocksWrap.children.length<=1){
+        clientSel.selectedIndex=0; clientSel.dispatchEvent(new Event('change'));
+        tarifInput.value=''; fallbackRdv.value=''; return;
+      }
+      blocksWrap.removeChild(div);
+    });
+
+    setTimeout(()=>clientSel.dispatchEvent(new Event('change')),0);
+    return div;
+  }
+  window.addRdvBlock=function(){ blocksWrap.appendChild(makeBlock()); };
+
+  rdvForm.onsubmit=async e=>{
+    e.preventDefault();
+    const dateVal = dateInput.value; if(!dateVal){notify("Date requise","#c02400");return;}
+    const docs=[];
+    [...blocksWrap.children].forEach(div=>{
+      const clientSel=div.querySelector('.clientSel');
+      const commsWrap=div.querySelector('.commsWrap');
+      const fallbackRow=div.querySelector('.fallbackRow');
+      const fallbackRdv=div.querySelector('.fallbackRdv');
+      const tarifInput=div.querySelector('.tarifInput');
+
+      const clientId=clientSel.value;
+      const cli=clientsRows.find(c=>c.id===clientId);
+      if(!cli) return;
+
+      const agence = cli.agence || '';
+      const tarif = Number(tarifInput.value||0);
+      if(!(tarif>=0)) return;
+
+      const pushDoc=(obj)=>docs.push({
+        createdAt:todayISO(),
+        createdAtTS:firebase.firestore.FieldValue.serverTimestamp(),
+        lastUpdateTS:firebase.firestore.FieldValue.serverTimestamp(),
+        clientId, agence, agenceKey:aKey(agence),
+        periodMonth: monthKey(dateVal),
+        periodDate: dateVal,
+        ...obj
+      });
+
+      if(commsWrap.style.display!=='none'){
+        [...commsWrap.querySelectorAll('.oneComm')].forEach(r=>{
+          const sel=r.querySelector('.commSelect');
+          const rdvField=r.querySelector('.commRdv');
+          const commercial=(sel.value||"").trim();
+          const rdv=Number(rdvField.value||0);
+          if(!commercial || !(rdv>=1)) return;
+          pushDoc({
+            commercial, date:dateVal, rdv, tarif,
+            total: rdv*tarif,
+            geste:false, gesteMontant:0, gesteClient:"", gesteVehicule:""
+          });
+        });
+      }else{
+        const rdv=Number(fallbackRdv.value||0);
+        if(!(rdv>=1)) return;
+        pushDoc({
+          commercial:"", date:dateVal, rdv, tarif,
+          total: rdv*tarif,
+          geste:false, gesteMontant:0, gesteClient:"", gesteVehicule:""
+        });
+      }
+    });
+
+    if(!docs.length){ notify("Ajoute au moins un commercial (ou un RDV).","#c02400"); return; }
+
+    try{
+      for(let i=0;i<docs.length;i+=400){
+        const batch=db.batch();
+        docs.slice(i,i+400).forEach(d=>{const ref=db.collection(COLLECTION).doc(); batch.set(ref,d);});
+        await batch.commit();
+      }
+      notify(`Enregistré : ${docs.length} ligne(s) !`);
+      blocksWrap.innerHTML=''; addRdvBlock();
+      dateInput.value=todayISO();
+    }catch(err){ notify("Erreur Firestore: "+err.message,"#c02400"); }
+  };
+
+  /* ===== Rows / Filters / Dashboard ===== */
+  let rows=[];
+  const liveDot=document.getElementById('liveDot');
+  function startRdvListener(){
+    return db.collection(COLLECTION).onSnapshot(snap=>{
+      liveDot.style.background='#1bd24e'; rows=[];
+      snap.forEach(doc=>{
+        const x=doc.data();const r={id:doc.id,...x};
+        if(!r.periodMonth&&r.date){r.periodMonth=monthKey(r.date);}
+        if(!r.periodDate&&r.date){r.periodDate=r.date;}
+        if(!r.createdAt) r.createdAt=r.periodDate||todayISO();
+        if(r.geste===undefined && Array.isArray(r.gestes)) r.geste = r.gestes.some(Boolean);
+        if(r.gesteMontant===undefined) r.gesteMontant = r.geste ? Number(r.tarif||0) : 0;
+        if(!r.gesteClient && Array.isArray(r.clients)) r.gesteClient = r.clients.find(v=>v)?.trim()||"";
+        if(!r.gesteVehicule && Array.isArray(r.vehicules)) r.gesteVehicule = r.vehicules.find(v=>v)?.trim()||"";
+        r.geste = !!r.geste;
+        r.gesteMontant = Math.max(0, Number(r.gesteMontant||0));
+        r.total = Number(r.total|| (Number(r.rdv||0)*Number(r.tarif||0)));
+        r.netTotal = Math.max(0, r.total - (r.geste ? r.gesteMontant : 0));
+        rows.push(r);
+      });
+      rebuildMonthFilters(); renderTable(); renderDashboard();
+    }, _=>{ liveDot.style.background='#ff3b30'; });
+  }
+  function initAppListeners(){
+    if(clientsUnsub) clientsUnsub();
+    if(rdvUnsub) rdvUnsub();
+    clientsUnsub = startClientsListener();
+    rdvUnsub = startRdvListener();
+  }
+
+  const tbody=document.getElementById('tbody');
+  const moisFiltre=document.getElementById('moisFiltre');
+  const filtreAgence=document.getElementById('filtreAgence');
+  const filtreCommercial=document.getElementById('filtreCommercial');
+  const btnClearFiltres=document.getElementById('btnClearFiltres');
+  const pagerEl=document.getElementById('pager');
+
+  /* Filtres */
+  moisFiltre?.addEventListener('change', ()=>{ currentPage=1; rebuildMonthFilters(); renderTable(); renderDashboard(); });
+  filtreAgence?.addEventListener('change', ()=>{ currentPage=1; renderTable(); renderDashboard(); });
+  filtreCommercial?.addEventListener('change', ()=>{ currentPage=1; renderTable(); renderDashboard(); });
+  btnClearFiltres?.addEventListener('click', (e)=>{ e.preventDefault(); filtreAgence.value=""; filtreCommercial.value=""; currentPage=1; renderTable(); renderDashboard(); });
+
+  /* ===== Pagination (10 par page) ===== */
+  let currentPage = 1;
+  const PAGE_SIZE = 10;
+
+  function renderPager(totalCount, page, pageSize){
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    pagerEl.innerHTML = `
+      <button class="bbtn" onclick="gotoPage(1)" ${page===1?'disabled':''}>«</button>
+      <button class="bbtn" onclick="prevPage()" ${page===1?'disabled':''}>‹</button>
+      <span class="info">Page ${page} / ${totalPages}</span>
+      <button class="bbtn" onclick="nextPage()" ${page>=totalPages?'disabled':''}>›</button>
+      <button class="bbtn" onclick="gotoPage(${totalPages})" ${page>=totalPages?'disabled':''}>»</button>
+    `;
+  }
+  window.gotoPage = function(p){
+    const total = getMonthDataFilteredSorted().length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    currentPage = Math.min(Math.max(1, p), totalPages);
+    renderTable();
+  };
+  window.prevPage = function(){ gotoPage(currentPage - 1); };
+  window.nextPage = function(){ gotoPage(currentPage + 1); };
+
+  /* ===== Helpers ===== */
+  function clientById(id){return clientsRows.find(x=>x.id===id)||null;}
+  function clientNameById(id){const c=clientById(id); return c? (c.agence||"") : "";}
+
+  function getMonthData(){const mm=moisFiltre.value; return rows.filter(r=>(r.date||r.periodDate||"").startsWith(mm));}
+  function getMonthDataSorted(){
+    return getMonthData().slice().sort((a,b)=>{
+      const da=(a.date||a.periodDate)||"", dbs=(b.date||b.periodDate)||"";
+      if(da!==dbs) return da<dbs?-1:1;
+      const ca=(clientNameById(a.clientId)||"").localeCompare(clientNameById(b.clientId)||"");
+      if(ca!==0) return ca;
+      return (a.commercial||"").localeCompare(b.commercial||"");
+    });
+  }
+  function getMonthDataFilteredSorted(){
+    const agency = filtreAgence.value || "";
+    const comm = filtreCommercial.value || "";
+    return getMonthDataSorted().filter(r=>{
+      if(agency && r.agence!==agency) return false;
+      if(comm && (r.commercial||"")!==comm) return false;
+      return true;
+    });
+  }
+  function rebuildMonthFilters(){
+    const mm=moisFiltre.value;
+    const data=rows.filter(r=>(r.date||r.periodDate||"").startsWith(mm));
+    const agencies=[...new Set(data.map(r=>r.agence).filter(Boolean))].sort();
+    const commercials=[...new Set(data.map(r=>r.commercial).filter(Boolean))].sort();
+    const prevA = filtreAgence.value; const prevC = filtreCommercial.value;
+    filtreAgence.innerHTML = `<option value="">Toutes</option>` + agencies.map(a=>`<option value="${a}">${a}</option>`).join('');
+    filtreCommercial.innerHTML = `<option value="">Tous</option>` + commercials.map(c=>`<option value="${c}">${c}</option>`).join('');
+    if(prevA && agencies.includes(prevA)) filtreAgence.value=prevA; else filtreAgence.value="";
+    if(prevC && commercials.includes(prevC)) filtreCommercial.value=prevC; else filtreCommercial.value="";
+  }
+
+  /* ===== Geste (Chip + Modale) ===== */
+  function gesteChip(r){
+    const tip = r.geste
+      ? `Client: ${r.gesteClient||'—'} · Véhicule: ${r.gesteVehicule||'—'} · Geste: -${fmt(r.gesteMontant)} €`
+      : `Aucun geste — cliquer pour ajouter`;
+    const chip = r.geste
+      ? `<span class="geste-chip geste-oui">−${fmt(r.gesteMontant)} €</span>`
+      : `<span class="geste-chip geste-non">Aucun</span>`;
+    const btnLabel = r.geste ? 'Modifier' : 'Geste';
+    return `<div class="geste-wrap" title="${tip.replace(/"/g,'&quot;')}">
+      ${chip}
+      <button class="geste-btn" onclick="openGesteModal('${r.id}')">${btnLabel}</button>
+    </div>`;
+  }
+  function gesteSub(r){
+    if(!r.geste) return '';
+    const who = [r.gesteClient||'', r.gesteVehicule?`(${r.gesteVehicule})`:'' ].filter(Boolean).join(' ');
+    return `<div class="amt-sub">Brut ${fmt(r.total)} € − ${fmt(r.gesteMontant)} € geste ${who?`· ${who}`:''} = Net ${fmt(r.netTotal)} €</div>`;
+  }
+
+  /* >>> Geste modal logic <<< */
+  let currentId=null;
+  window.openGesteModal=function(id){
+    const r=rows.find(x=>x.id===id); if(!r) return;
+    currentId=id;
+
+    const info=`${formatDateLong(r.date||r.periodDate)} — ${r.agence||'—'} ${r.commercial?('· '+r.commercial):''} · ${r.rdv} RDV · Tarif ${fmt(r.tarif||0)} €`;
+    document.getElementById('gInfo').textContent=info;
+
+    const en=document.getElementById('gEnable');
+    const fields=document.getElementById('gFields');
+    const cli=document.getElementById('gClient');
+    const veh=document.getElementById('gVehicule');
+    const mon=document.getElementById('gMontant');
+    const prev=document.getElementById('gPreview');
+
+    en.checked = !!r.geste;
+    fields.style.display = en.checked ? 'block' : 'none';
+    cli.value = r.gesteClient || '';
+    veh.value = r.gesteVehicule || '';
+    mon.value = (r.geste ? r.gesteMontant : (r.tarif||0)) || 0;
+
+    const updatePrev=()=>{
+      const brut = Number(r.total||0);
+      let ded = Math.min(Math.max(0, Number(mon.value||0)), brut);
+      if(!en.checked) ded=0;
+      const net = Math.max(0, brut - ded);
+      const who = (en.checked && (cli.value||veh.value)) ? ` · ${[cli.value||'', veh.value?`(${veh.value})`:'' ].filter(Boolean).join(' ')}` : '';
+      prev.textContent = en.checked ? `Brut ${fmt(brut)} € − ${fmt(ded)} € = Net ${fmt(net)} €${who}` : `Brut ${fmt(brut)} € (aucun geste)`;
+    };
+    updatePrev();
+    en.onchange=()=>{ fields.style.display=en.checked?'block':'none'; updatePrev(); };
+    mon.oninput=updatePrev; cli.oninput=updatePrev; veh.oninput=updatePrev;
+
+    document.getElementById('gesteModal').style.display='block';
+  };
+  window.closeGesteModal=function(){ document.getElementById('gesteModal').style.display='none'; currentId=null; };
+  window.saveGeste=async function(){
+    if(!currentId) return;
+    const r=rows.find(x=>x.id===currentId); if(!r) return;
+    const en=document.getElementById('gEnable').checked;
+    const cli=(document.getElementById('gClient').value||'').trim();
+    const veh=(document.getElementById('gVehicule').value||'').trim();
+    let mon=Number(document.getElementById('gMontant').value||0);
+    const brut = Number(r.total||0);
+    if(mon<0) mon=0; if(mon>brut) mon=brut;
+
+    try{
+      await db.collection(COLLECTION).doc(currentId).set({
+        geste: en,
+        gesteClient: en?cli:"",
+        gesteVehicule: en?veh:"",
+        gesteMontant: en?mon:0,
+        lastUpdateTS: firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+      closeGesteModal();
+    }catch(e){ alert("Erreur Firestore: "+(e?.message||e)); }
+  };
+
+  /* ===== Table & actions ===== */
+  window.toggleAll=b=>{document.querySelectorAll('.chk').forEach(c=>c.checked=b.checked);}
+  async function deleteSelected(){
+    const toDel=[...document.querySelectorAll('.chk:checked')].map(c=>c.dataset.id);
+    if(!toDel.length){alert("Sélectionne au moins une ligne.");return;}
+    if(!confirm(`Supprimer ${toDel.length} RDV ?`)) return;
+    const batch=db.batch(); toDel.forEach(id=>batch.delete(db.collection(COLLECTION).doc(id))); await batch.commit();
+    notify("Sélection supprimée","#c02400");
+  }
+  function renderTable(){
+    tbody.innerHTML="";
+    const all = getMonthDataFilteredSorted();
+    const totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+    if(currentPage > totalPages) currentPage = totalPages;
+    if(currentPage < 1) currentPage = 1;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageRows = all.slice(start, start + PAGE_SIZE);
+
+    pageRows.forEach(r=>{
+      const tr=document.createElement('tr'); tr.innerHTML=`
+        <td><input type="checkbox" class="chk" data-id="${r.id}"></td>
+        <td>${formatDateLong(r.date||r.periodDate)}</td>
+        <td>${r.agence||""}</td>
+        <td>${r.commercial||""}</td>
+        <td>${r.rdv||""}</td>
+        <td>${(r.tarif!=null)?fmt(r.tarif)+' €':''}</td>
+        <td style="font-weight:700;color:#1756b3">${fmt(r.netTotal||0)} €${gesteSub(r)}</td>
+        <td>${gesteChip(r)}</td>
+        <td><button class="btn-icon edit" onclick="editRow('${r.id}')">✎</button><button class="btn-icon" onclick="delRow('${r.id}')">✕</button></td>`;
+      tbody.appendChild(tr);
+    });
+    const allChk=document.getElementById('checkAll'); if(allChk) allChk.checked=false;
+
+    renderPager(all.length, currentPage, PAGE_SIZE);
+  }
+
+  let editingId = null;
+  window.editRow = (id) => {
+    const r = rows.find(x => x.id === id);
+    if (!r) return;
+    editingId = id;
+
+    const chk = document.querySelector(`.chk[data-id="${id}"]`);
+    const tr  = chk ? chk.closest('tr') : null;
+    if (!tr) return;
+
+    const agenceOptionsHTML = (selectedId) =>
+      clientsRows.map(c =>
+        `<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.agence||'Agence'}</option>`
+      ).join('');
+
+    const commerciauxOptionsHTML = (clientId, selectedName) => {
+      const cli = clientById(clientId);
+      const list = Array.isArray(cli?.commerciaux) ? cli.commerciaux.filter(Boolean) : [];
+      if (!list.length) return `<option value="">—</option>`;
+      return `<option value="">—</option>` + list.map(n => `<option ${n===selectedName?'selected':''}>${n}</option>`).join('');
+    };
+
+    tr.innerHTML = `
+      <td><input type="checkbox" class="chk" data-id="${r.id}" disabled></td>
+      <td class="cell-edit"><input type="date" class="in dateIn" value="${(r.date||r.periodDate||'').slice(0,10)}"></td>
+      <td class="cell-edit">
+        <select class="in agSel">${agenceOptionsHTML(r.clientId)}</select>
+      </td>
+      <td class="cell-edit">
+        <select class="in coSel">${commerciauxOptionsHTML(r.clientId, r.commercial||"")}</select>
+      </td>
+      <td class="cell-edit"><input type="number" min="1" class="in rdvIn" value="${r.rdv||1}"></td>
+      <td class="cell-edit"><input type="number" min="0" step="1" class="in tarifIn" value="${(r.tarif!=null)?r.tarif:''}"></td>
+      <td class="cell-edit netCell" style="font-weight:700;color:#1756b3"></td>
+      <td>${gesteChip(r)}</td>
+      <td class="cell-edit">
+        <button class="bbtn" id="saveRow">✅</button>
+        <button class="bbtn red" id="cancelRow">↩︎</button>
+      </td>
+    `;
+
+    const agSel   = tr.querySelector('.agSel');
+    const coSel   = tr.querySelector('.coSel');
+    const rdvIn   = tr.querySelector('.rdvIn');
+    const tarifIn = tr.querySelector('.tarifIn');
+    const dateIn  = tr.querySelector('.dateIn');
+    const netCell = tr.querySelector('.netCell');
+
+    function recalcNet() {
+      const rdv   = Math.max(0, Number(rdvIn.value||0));
+      const tarif = Math.max(0, Number(tarifIn.value||0));
+      const brut  = rdv * tarif;
+      const ded   = r.geste ? Math.min(Number(r.gesteMontant||0), brut) : 0;
+      const who   = r.geste ? [r.gesteClient||'', r.gesteVehicule?`(${r.gesteVehicule})`:'' ].filter(Boolean).join(' ') : '';
+      const net   = Math.max(0, brut - ded);
+      netCell.innerHTML = `${fmt(net)} €` + (r.geste ? `<div class="amt-sub">Brut ${fmt(brut)} € − ${fmt(ded)} € ${who?`· ${who}`:''}</div>` : '');
+    }
+
+    function refreshCommerciauxAndTarif() {
+      coSel.innerHTML = commerciauxOptionsHTML(agSel.value, r.commercial||"");
+      const cli = clientById(agSel.value);
+      if (tarifIn && (tarifIn.value === '' || Number(tarifIn.value) === (r.tarif||0))) {
+        if (cli?.tarif != null && cli.tarif !== '') tarifIn.value = cli.tarif;
+      }
+      recalcNet();
+    }
+
+    agSel.addEventListener('change', refreshCommerciauxAndTarif);
+    rdvIn.addEventListener('input', recalcNet);
+    tarifIn.addEventListener('input', recalcNet);
+
+    refreshCommerciauxAndTarif();
+
+    tr.querySelector('#cancelRow').onclick = () => { editingId = null; renderTable(); };
+
+    tr.querySelector('#saveRow').onclick = async () => {
+      const dateStr   = (dateIn.value||'').slice(0,10);
+      const clientId  = agSel.value;
+      const cli       = clientById(clientId);
+      const agence    = cli?.agence || '';
+      const commercial= coSel.value || '';
+      const rdvNew    = Math.max(1, Number(rdvIn.value||0));
+      const tarifNew  = Math.max(0, Number(tarifIn.value||0));
+      const total     = rdvNew * tarifNew;
+
+      const update = {
+        date: dateStr,
+        periodDate: dateStr,
+        periodMonth: monthKey(dateStr),
+        clientId,
+        agence,
+        agenceKey: aKey(agence),
+        commercial,
+        rdv: rdvNew,
+        tarif: tarifNew,
+        total,
+        lastUpdateTS: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (r.geste) update.gesteMontant = Math.min(Number(r.gesteMontant||0), total);
+
+      try {
+        await db.collection(COLLECTION).doc(r.id).set(update, { merge: true });
+        notify("Modifié ✓");
+        editingId = null;
+      } catch(e) {
+        alert("Erreur Firestore: " + (e?.message||e));
+      }
+    };
+  };
+
+  window.delRow=async id=>{ if(!confirm("Supprimer ce RDV ?")) return; await db.collection(COLLECTION).doc(id).delete(); notify("Supprimé","#c02400"); };
+
+  /* ===== Dashboard ===== */
+  function renderDashboard(){
+    const data=getMonthDataFilteredSorted();
+    let brut=0, net=0, ded=0, rdv=0;
+    data.forEach(r=>{
+      brut+=r.total||0; net+=r.netTotal||0; rdv+=r.rdv||0;
+      if(r.geste){ ded+=Math.min(r.gesteMontant||0, r.total||0); }
+    });
+    const mm=moisFiltre.value;
+    document.getElementById('dashboard').innerHTML=
+      `<div class="card">
+         <div class="card-label">Bilan (${labelMonth(mm)})</div>
+         <div class="card-value">${fmt(net)} €</div>
+         <div class="card-sub">(${rdv} RDV · −${fmt(ded)} € gestes)</div>
+       </div>`;
+  }
+
+  /* ===== Excel (non affiché) ===== */
+  function exportGlobalExcel(){
+    const wb=XLSX.utils.book_new();
+    const ws=[["Date","Agence","Commercial","RDV","Tarif (€)","Brut TTC (€)","Geste (€)","Net TTC (€)","Mois","Client (geste)","Véhicule (geste)"]];
+    getMonthDataFilteredSorted().forEach(r=>{
+      ws.push([
+        formatDateLong(r.date||r.periodDate),
+        r.agence, r.commercial, r.rdv, r.tarif,
+        r.total, (r.geste? r.gesteMontant:0), r.netTotal,
+        labelMonth(moisFiltre.value),
+        r.geste? (r.gesteClient||"") : "",
+        r.geste? (r.gesteVehicule||"") : ""
+      ]);
+    });
+    const sheet=XLSX.utils.aoa_to_sheet(ws); XLSX.utils.book_append_sheet(wb,sheet,"RDV");
+    XLSX.writeFile(wb, `RDV_${labelMonth(moisFiltre.value).replace(/\s+/g,'_')}.xlsx`);
+  }
+
+  /* ====================== PDF ====================== */
+  const BRAND = {
+    primary: [23, 86, 179],
+    accent:  [25, 119, 242],
+    light:   [230, 242, 255],
+    soft:    [246, 250, 255],
+    border:  [207, 224, 255],
+    text:    [35, 42, 56],
+    muted:   [110, 123, 145]
+  };
+
+  function themedHeader(doc, { title, subtitle, rdv }) {
+    const w = doc.internal.pageSize.getWidth();
+    const left = 40, headerH = 96;
+    doc.setFillColor(...BRAND.light); doc.rect(0,0,w,headerH,'F');
+    doc.setFillColor(...BRAND.accent); doc.rect(0,0,6,headerH,'F');
+    doc.setTextColor(...BRAND.primary);
+    doc.setFont('helvetica','bold'); doc.setFontSize(20);
+    doc.text(title, left+12, 32);
+    doc.setTextColor(...BRAND.muted);
+    doc.setFont('helvetica','normal'); doc.setFontSize(12);
+    doc.text(subtitle, left+12, 52);
+    doc.setTextColor(...BRAND.primary);
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text(`Nombre de rendez-vous : ${rdv}`, left+12, 74);
+    return headerH;
+  }
+  function themedFooter(doc, { page, hidePageNumOnFirst }) {
+    const w = doc.internal.pageSize.getWidth();
+    const h = doc.internal.pageSize.getHeight();
+    const left = 40, right = 40, y = h - 26;
+    doc.setDrawColor(230); doc.setLineWidth(0.6); doc.line(left,y,w-right,y);
+    doc.setTextColor(...BRAND.muted); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    if(!(hidePageNumOnFirst && page===1)){
+      doc.text(`Page ${page}`, left, y+16);
+    }
+    /* (Pas de date/heure en bas à droite) */
+  }
+  function buildPdfFileName({scope, agence, commercial, period, mm, year}){
+    let base="Bilan ";
+    if(scope==='global') base+="Global";
+    if(scope==='agency') base+=agence?`Agence - ${agence}`:"Agence";
+    if(scope==='commercial'){
+      if(commercial && commercial!=='—') base+=`Commercial - ${commercial}`;
+      else base+=`Agence - ${agence||"Agence"}`;
+    }
+    const suffix = (period==='year')? `(Annuel ${year})` : `(${labelMonth(mm)})`;
+    return `${base} ${suffix}.pdf`;
+  }
+  let bilanPeriod='month';
+  let lastBilan={fn:null,arg:null};
+  function setBilanPeriod(p){
+    bilanPeriod=p;
+    document.getElementById('segMonth').classList.toggle('active', p==='month');
+    document.getElementById('segYear').classList.toggle('active', p==='year');
+    if(lastBilan.fn) lastBilan.fn(lastBilan.arg);
+  }
+  function closeBilan(){ document.getElementById('bilanModal').style.display='none'; }
+  function filterDataByPeriod({scope, agence, commercial}){
+    const mm=moisFiltre.value; const year=mm.slice(0,4);
+    let data=rows.slice();
+    if(bilanPeriod==='year') data=data.filter(r=>(r.date||r.periodDate||"").startsWith(year+"-"));
+    else data=data.filter(r=>(r.date||r.periodDate||"").startsWith(mm));
+    if(scope==='agency' && agence) data=data.filter(r=>r.agence===agence);
+    if(scope==='commercial' && commercial) data=data.filter(r=> (r.commercial||"—")===commercial && (!agence || r.agence===agence));
+    if(scope==='commercial' && (!commercial || commercial==='—') && agence){
+      data=data.filter(r=>r.agence===agence);
+    }
+    data=data.slice().sort((a,b)=>{
+      const da=(a.date||a.periodDate)||"", dbs=(b.date||b.periodDate)||"";
+      if(da!==dbs) return da<dbs?-1:1;
+      const ca=(clientNameById(a.clientId)||"").localeCompare(clientNameById(b.clientId)||"");
+      if(ca!==0) return ca;
+      return (a.commercial||"").localeCompare(b.commercial||"");
+    });
+    return {data,mm,year};
+  }
+  function exportBilanPdf(scope, agence, commercial){
+    const { jsPDF } = window.jspdf;
+    const {data,mm,year}=filterDataByPeriod({scope,agence,commercial});
+    const isYear=(bilanPeriod==='year');
+
+    const totalBrut = data.reduce((s,r)=>s+(r.total||0),0);
+    const totalGest = data.reduce((s,r)=>s+(r.geste?Math.min(r.gesteMontant||0, r.total||0):0),0);
+    const totalNet  = Math.max(0, totalBrut - totalGest);
+    const totalRDV  = data.reduce((s,r)=>s+(r.rdv||0),0);
+    const gesturesCount = data.filter(r=>r.geste && Math.min(r.gesteMontant||0, r.total||0)>0).length;
+
+    let title = isYear ? "Bilan annuel" : "Bilan du mois";
+    let subtitle = isYear ? `${year}` : `${labelMonth(mm)}`;
+
+    if(scope==='commercial'){
+      const hasComm = !!commercial && commercial!=='—';
+      if(hasComm){
+        title = isYear ? "Bilan annuel — Commercial" : "Bilan du mois — Commercial";
+        subtitle = `${commercial} — ${isYear?year:labelMonth(mm)}${agence?` — ${agence}`:''}`;
+      }else{
+        title = isYear ? "Bilan annuel" : "Bilan du mois";
+        subtitle = `${agence?`${agence} — `:''}${isYear?year:labelMonth(mm)}`;
+      }
+    }
+    if(scope==='global'){ subtitle += " — Global"; }
+    if(scope==='agency' && agence){ subtitle += ` — ${agence}`; }
+
+    const orientation = (scope==='commercial' && !isYear) ? 'landscape' : 'portrait';
+    const doc = new jsPDF({ unit:'pt', format:'a4', orientation });
+
+    let head=[], body=[], columnStyles={};
+    if(scope==='global'){
+      const byAgence={};
+      data.forEach(r=>{
+        const k=r.agence||"—";
+        if(!byAgence[k]) byAgence[k]={rdv:0, brut:0};
+        byAgence[k].rdv+=(r.rdv||0);
+        byAgence[k].brut+=(r.total||0);
+      });
+      head=[['Agence','RDV','Brut (€)']];
+      body=Object.keys(byAgence).sort().map(k=>[k, String(byAgence[k].rdv), `${pdfFmt(byAgence[k].brut)} €`]);
+      if(!body.length) body=[['—','0','0 €']];
+      columnStyles={0:{halign:'left'},1:{halign:'right'},2:{halign:'right'}};
+    }
+    if(scope==='commercial'){
+      if(isYear){
+        const monthsMap={};
+        data.forEach(r=>{
+          const mo=(r.date||r.periodDate||"").slice(0,7);
+          if(!monthsMap[mo]) monthsMap[mo]={rdv:0, brut:0};
+          monthsMap[mo].rdv+=(r.rdv||0);
+          monthsMap[mo].brut+=(r.total||0);
+        });
+        const monthsSorted=Object.keys(monthsMap).sort();
+        head=[['Mois','RDV','Brut (€)']];
+        body=monthsSorted.map(mo=>{
+          const [yy,mm2]=mo.split('-').map(Number);
+          const v=monthsMap[mo];
+          return [`${MONTHS_FR[(mm2||1)-1]} ${yy}`, String(v.rdv), `${pdfFmt(v.brut)} €`];
+        });
+        if(!body.length) body=[['—','0','0 €']];
+        columnStyles={0:{halign:'left'},1:{halign:'right'},2:{halign:'right'}};
+      }else{
+        const hasGesture = data.some(r=>r.geste && Math.min(r.gesteMontant||0, r.total||0)>0);
+        if(!hasGesture){
+          head=[['Date','Agence','RDV','Tarif (€)','Total TTC (€)']];
+          body=data.map(r=>[
+            formatDateLong(r.date||r.periodDate), r.agence||'—', String(r.rdv||0),
+            (r.tarif!=null?`${pdfFmt(r.tarif)} €`:""), `${pdfFmt(r.total||0)} €`
+          ]);
+          if(!body.length) body=[['—','—','0','—','0 €']];
+          columnStyles={0:{halign:'left'},1:{halign:'left'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}};
+        }else{
+          head=[['Date','Agence','RDV','Tarif (€)','Brut (€)','Geste (€)','Total TTC (€)','Client/Véhicule']];
+          body=data.map(r=>{
+            const d = r.geste ? Math.min(r.gesteMontant||0, r.total||0) : 0;
+            const net = Math.max(0,(r.total||0)-d);
+            const who = r.geste ? `${r.gesteClient||'—'}${r.gesteVehicule?` (${r.gesteVehicule})`:''}` : '—';
+            return [
+              formatDateLong(r.date||r.periodDate), r.agence||'—', String(r.rdv||0),
+              (r.tarif!=null?`${pdfFmt(r.tarif)} €`:""),
+              `${pdfFmt(r.total||0)} €`,
+              (r.geste?`${pdfFmt(d)} €`:'—'),
+              `${pdfFmt(net)} €`,
+              who
+            ];
+          });
+          if(!body.length) body=[['—','—','0','—','0 €','—','0 €','—']];
+          columnStyles={0:{halign:'left'},1:{halign:'left'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'left'}};
+        }
+      }
+    }
+    if(scope==='agency'){
+      const map={};
+      data.forEach(r=>{
+        const co=r.commercial||"—";
+        if(!map[co]) map[co]={rdv:0, brut:0};
+        map[co].rdv+=(r.rdv||0);
+        map[co].brut+=(r.total||0);
+      });
+      head=[['Commercial','RDV','Brut (€)']];
+      body=Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([co,v])=>[co, String(v.rdv), `${pdfFmt(v.brut)} €`]);
+      if(!body.length) body=[['—','0','0 €']];
+      columnStyles={0:{halign:'left'},1:{halign:'right'},2:{halign:'right'}};
+    }
+
+    const HEADER_H=96, left=40, right=40, bottom=68;
+
+    doc.autoTable({
+      head, body,
+      margin:{ top: HEADER_H+16, left, right, bottom },
+      styles:{ font:'helvetica', fontSize:11, cellPadding:6, halign:'center', lineColor:[230,236,255], lineWidth:0.6 },
+      headStyles:{ fillColor:BRAND.light, textColor:BRAND.primary, fontStyle:'bold', lineWidth:0 },
+      bodyStyles:{ fillColor:[255,255,255] },
+      alternateRowStyles:{ fillColor:BRAND.soft },
+      columnStyles,
+      theme:'grid',
+      didDrawPage: (dataCtx) => {
+        themedHeader(doc, { title, subtitle, rdv: totalRDV });
+        themedFooter(doc, { page: dataCtx.pageNumber, hidePageNumOnFirst: true });
+      }
+    });
+
+    const yEnd=doc.lastAutoTable?.finalY || 120;
+    const w=doc.internal.pageSize.getWidth();
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(...BRAND.primary);
+
+    if(data.some(r=>r.geste && Math.min(r.gesteMontant||0, r.total||0)>0)){
+      const totalBrut2 = data.reduce((s,r)=>s+(r.total||0),0);
+      const totalGest2 = data.reduce((s,r)=>s+(r.geste?Math.min(r.gesteMontant||0, r.total||0):0),0);
+      const totalNet2  = Math.max(0, totalBrut2 - totalGest2);
+      doc.text(`Brut : ${pdfFmt(totalBrut2)} €`, left, yEnd+28);
+      doc.text(`Total TTC : ${pdfFmt(totalNet2)} €`, w-right, yEnd+28, {align:'right'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(...BRAND.muted);
+      doc.text(`Gestes commerciaux : ${pdfFmt(totalGest2)} €`, left, yEnd+48);
+    }else{
+      const totalNet2 = data.reduce((s,r)=>s+(r.total||0),0);
+      doc.text(`Total TTC : ${pdfFmt(totalNet2)} €`, w-right, yEnd+28, {align:'right'});
+    }
+
+    const file=buildPdfFileName({scope, agence, commercial, period:bilanPeriod, mm, year});
+    doc.save(file);
+  }
+  function exportMonthPdfAll(){
+    const prev=bilanPeriod; bilanPeriod='month';
+    exportBilanPdf('global', null, null);
+    bilanPeriod=prev;
+  }
+  window.exportMonthPdfAll=exportMonthPdfAll;
+  window.exportBilanPdf=exportBilanPdf;
+
+  /* ===== BILANS (fenêtre modale) ===== */
+  function showBilan(html,title){
+    document.getElementById('bilanTitle').textContent=title||'Bilan';
+    document.getElementById('bilanDetails').innerHTML=html;
+    document.getElementById('bilanModal').style.display='block';
+  }
+  function showBilanGlobal(){
+    lastBilan={fn:showBilanGlobal,arg:null};
+    const {data}=filterDataByPeriod({scope:'global'});
+    const byAgence={};
+    data.forEach(r=>{
+      const k=r.agence||"—";
+      const d = r.geste ? Math.min(r.gesteMontant||0, r.total||0) : 0;
+      if(!byAgence[k]) byAgence[k]={rdv:0, brut:0, ded:0, net:0};
+      byAgence[k].rdv += r.rdv||0;
+      byAgence[k].brut += r.total||0;
+      byAgence[k].ded  += d;
+      byAgence[k].net  += Math.max(0,(r.total||0)-d);
+    });
+    const hasDed = Object.values(byAgence).some(v=>v.ded>0);
+
+    let html=`<table>
+      <thead><tr>
+        <th>Agence</th><th>RDV</th><th>Total TTC (€)</th>${hasDed?'<th>Déduction geste (€)</th>':''}<th style="min-width:140px">PDF</th>
+      </tr></thead><tbody>`;
+    Object.keys(byAgence).sort((a,b)=>a.localeCompare(b)).forEach(a=>{
+      const v=byAgence[a];
+      html+=`<tr>
+        <td>${a}</td>
+        <td>${fmt(v.rdv)}</td>
+        <td>${fmt(v.net)} €</td>
+        ${hasDed?`<td>${v.ded?('−'+fmt(v.ded)+' €'):'—'}</td>`:''}
+        <td><button class="bbtn" onclick='exportBilanPdf("global", ${JSON.stringify(a)}, null)'>Télécharger</button></td>
+      </tr>`;
+    });
+    html+=`</tbody></table>`;
+    showBilan(html, `Bilan global — ${bilanPeriod==='year'?'Annuel':labelMonth(moisFiltre.value)}`);
+  }
+  window.showBilanGlobal=showBilanGlobal;
+
+  function showBilanCommercial(){
+    lastBilan={fn:showBilanCommercial,arg:null};
+    const {data}=filterDataByPeriod({scope:'commercial'});
+    const map={};
+    data.forEach(r=>{
+      const key=(r.agence||"—")+"||"+(r.commercial||"—");
+      const d = r.geste ? Math.min(r.gesteMontant||0, r.total||0) : 0;
+      if(!map[key]) map[key]={agence:(r.agence||"—"), commercial:(r.commercial||"—"), rdv:0, brut:0, ded:0, net:0};
+      map[key].rdv+=(r.rdv||0);
+      map[key].brut+=(r.total||0);
+      map[key].ded +=d;
+      map[key].net +=Math.max(0,(r.total||0)-d);
+    });
+    const arr=Object.values(map).sort((a,b)=> a.agence===b.agence ? a.commercial.localeCompare(b.commercial): a.agence.localeCompare(b.agence));
+    const hasDed = arr.some(v=>v.ded>0);
+
+    let html=`<table>
+      <thead><tr>
+        <th>Commercial</th><th>Agence</th><th>RDV</th><th>Total TTC (€)</th>${hasDed?'<th>Déduction geste (€)</th>':''}<th style="min-width:140px">PDF</th>
+      </tr></thead><tbody>`;
+    arr.forEach(r=>{
+      html+=`<tr>
+        <td>${r.commercial}</td>
+        <td>${r.agence}</td>
+        <td>${fmt(r.rdv)}</td>
+        <td>${fmt(r.net)} €</td>
+        ${hasDed?`<td>${r.ded?('−'+fmt(r.ded)+' €'):'—'}</td>`:''}
+        <td><button class="bbtn" onclick='exportBilanPdf("commercial", ${JSON.stringify(r.agence)}, ${JSON.stringify(r.commercial)})'>Télécharger</button></td>
+      </tr>`;
+    });
+    html+=`</tbody></table>`;
+    showBilan(html, `Bilan par commercial — ${bilanPeriod==='year'?'Annuel':labelMonth(moisFiltre.value)}`);
+  }
+  window.showBilanCommercial=showBilanCommercial;
+
+  /* >>>>>>>>>>>>> MODIFIE : DOMContentLoaded avec mois limités + Entrée pour valider le mot de passe <<<<<<<<<<<<< */
+  window.addEventListener('DOMContentLoaded', ()=>{
+    // Init sélecteur mois : Sept. 2025 -> mois courant (ex: Oct. 2025)
+    buildMonthOptionsLimited('moisFiltre', APP_START_YEAR, APP_START_MONTH);
+
+    // Date par défaut pour la saisie
+    const di = document.getElementById('dateSelect');
+    if (di) di.value = todayISO();
+
+    // Un bloc RDV au départ + accès
+    addRdvBlock();
+    loadAccess();
+
+    // Validation au clavier (Entrée)
+    const pwLogin = document.getElementById('pwLogin');
+    if (pwLogin) {
+      pwLogin.addEventListener('keydown', (e)=>{
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          tryLogin();
+        }
+      });
+    }
+    ['pw1','pw2'].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keydown', (e)=>{
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            createAdminPassword();
+          }
+        });
+      }
+    });
+  });
+  </script>
+</body>
+</html>
