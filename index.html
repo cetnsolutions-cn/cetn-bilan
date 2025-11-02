@@ -1,4 +1,4 @@
-<!doctype html>
+ <!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
@@ -358,98 +358,6 @@
     }
     /* Scrollbar masquée (comme le thème) */
     ::-webkit-scrollbar { display:none; }
-
-    /* === MOBILE CLEAN ≤ 430px — alignements homogènes, tout visible === */
-    @media (max-width: 430px){
-      :root{ --labw: 112px; } /* largeur de l’étiquette gauche dans les cartes-tableaux */
-
-      /* Conteneur & header */
-      .wrap{max-width:100vw;padding:8px 8px 16px;border-radius:12px}
-      .head{padding:6px 0}
-      .title{font-size:.96rem;font-weight:800}
-
-      /* KPI en grille propre */
-      .dash{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-      .card{margin:0;border-radius:12px}
-
-      /* Boutons larges, même hauteur */
-      .btns{gap:6px}
-      .btns .btn{width:100%;padding:10px;font-size:.9rem;border-radius:10px}
-
-      /* Filtres en grille 2 colonnes */
-      .monthbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;border-radius:10px}
-      .monthbar label{display:none}
-      .monthbar select,
-      .monthbar .clear,
-      .monthbar .trash{width:100%;min-height:36px}
-
-      /* RDV blocks : 1 colonne nette */
-      .form-wrap{padding:8px;margin:8px 0;border-radius:10px}
-      .form{gap:6px}
-      .form select,.form input{min-height:36px;padding:8px;font-size:13px}
-      #rdvBlocks{gap:8px}
-      .rdv-block{grid-template-columns:1fr;gap:6px}
-      .oneComm{grid-template-columns:1fr .6fr auto}
-      .plus-mini,.rm{padding:6px 8px}
-
-      /* TABLEAUX → cartes empilées, labels fixes alignés */
-      .table-wrap{padding:0}
-      .table-wrap table{min-width:0;table-layout:auto}
-      .table-wrap thead{display:none}
-      .table-wrap tbody tr{
-        display:block;background:#fff;border:1px solid #e5edf8;border-radius:12px;
-        padding:8px 10px;margin:0 0 8px
-      }
-      .table-wrap tbody td{
-        display:flex;gap:8px;align-items:center;padding:8px 0;
-        text-align:right; /* valeurs à droite */
-      }
-      .table-wrap tbody td::before{
-        width:var(--labw);min-width:var(--labw);flex:0 0 var(--labw);
-        text-align:left;font-weight:700;color:#1e3a8a
-      }
-
-      /* Colonnes texte: ellipsis propre */
-      #section-rdv .table-wrap tbody td:nth-child(3),
-      #section-rdv .table-wrap tbody td:nth-child(4),
-      #section-clients .table-wrap tbody td:nth-child(1),
-      #section-clients .table-wrap tbody td:nth-child(2){
-        overflow:hidden;text-overflow:ellipsis;white-space:nowrap
-      }
-
-      /* Numériques alignés droite (déjà géré par text-align) */
-      #section-rdv .table-wrap tbody td:nth-child(5),
-      #section-rdv .table-wrap tbody td:nth-child(6),
-      #section-rdv .table-wrap tbody td:nth-child(7),
-      #section-clients .table-wrap tbody td:nth-child(3){text-align:right}
-
-      /* Libellés RDV */
-      #section-rdv .table-wrap tbody td:nth-child(1)::before{content:"Sel."}
-      #section-rdv .table-wrap tbody td:nth-child(2)::before{content:"Date"}
-      #section-rdv .table-wrap tbody td:nth-child(3)::before{content:"Agence"}
-      #section-rdv .table-wrap tbody td:nth-child(4)::before{content:"Commercial"}
-      #section-rdv .table-wrap tbody td:nth-child(5)::before{content:"RDV"}
-      #section-rdv .table-wrap tbody td:nth-child(6)::before{content:"Tarif"}
-      #section-rdv .table-wrap tbody td:nth-child(7)::before{content:"TTC (€)"}
-      #section-rdv .table-wrap tbody td:nth-child(8)::before{content:"Geste"}
-      #section-rdv .table-wrap tbody td:nth-child(9)::before{content:"Actions"}
-
-      /* Libellés Répertoire */
-      #section-clients .table-wrap tbody td:nth-child(1)::before{content:"Agence"}
-      #section-clients .table-wrap tbody td:nth-child(2)::before{content:"Commerciaux"}
-      #section-clients .table-wrap tbody td:nth-child(3)::before{content:"Tarif"}
-      #section-clients .table-wrap tbody td:nth-child(4)::before{content:"Actions"}
-
-      /* Geste compact & lisible */
-      .geste-wrap{justify-content:flex-end;gap:8px}
-      .geste-btn{padding:6px 8px}
-      .geste-chip{padding:2px 8px}
-      .amt-sub{display:block;font-size:11px;margin-top:2px;text-align:right}
-
-      /* Modales compactes */
-      #bilanContent,#gesteContent{width:95vw;margin:6vh auto;padding:12px}
-      .lock-box{width:92vw}
-    }
   </style>
 </head>
 <body>
@@ -1661,7 +1569,7 @@
 
   /* >>>>>>>>>>>>> MODIFIE : DOMContentLoaded avec mois limités + Entrée pour valider le mot de passe <<<<<<<<<<<<< */
   window.addEventListener('DOMContentLoaded', ()=>{
-    // Init sélecteur mois : Sept. 2025 -> mois courant
+    // Init sélecteur mois : Sept. 2025 -> mois courant (ex: Oct. 2025)
     buildMonthOptionsLimited('moisFiltre', APP_START_YEAR, APP_START_MONTH);
 
     // Date par défaut pour la saisie
