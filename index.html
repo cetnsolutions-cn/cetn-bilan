@@ -16,112 +16,123 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    /* ===== THEME GLASS ===== */
-    html,body{background: linear-gradient(135deg,#f8fafc, #eff6ff 45%, #eef2ff 100%); margin:0;padding:0;width:100%;min-height:100vh;font-family:'Inter',sans-serif; color:#1e293b}
-    *{box-sizing:border-box}
-    input, select, textarea, button { -webkit-appearance: none; appearance: none; outline:none; }
+    /* ===== THEME STABLE ===== */
+    body { background: #f4f6fa; margin:0; font-family:'Inter',sans-serif; color:#232a38; -webkit-font-smoothing:antialiased; }
+    * { box-sizing:border-box; }
+    input, select, button { outline:none; -webkit-appearance:none; }
 
-    .wrap {
-      width:100%;max-width:1200px;margin:20px auto;
-      background: rgba(255,255,255,.9); border:1px solid #dbeafe; border-radius:24px;
-      box-shadow: 0 25px 60px rgba(30,64,175,.12); backdrop-filter: saturate(180%) blur(10px);
-      padding:20px 24px; min-height:90vh;
-    }
+    .wrap { max-width:1100px; margin:0 auto; background:#fff; min-height:100vh; padding:15px; position:relative; }
+    @media(min-width:768px){ .wrap{ margin:20px auto; border-radius:12px; min-height:auto; box-shadow:0 4px 20px rgba(0,0,0,0.05); padding:24px; } }
 
     /* Header */
-    .head {display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid #e2e8f0}
-    .title { font-size:1.5rem; font-weight:900; background: linear-gradient(90deg,#1e40af,#4f46e5); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .head { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:15px; }
+    .title { font-size:1.4rem; font-weight:900; color:#1b47b7; margin:0; }
     .live-area { display:flex; align-items:center; gap:10px; }
-    .live { padding:6px 12px;border-radius:99px;background:#ecfdf5;border:1px solid #bbf7d0;color:#166534;font-weight:700; font-size:13px; display:flex;align-items:center;gap:6px }
-    .dot{width:8px;height:8px;border-radius:50%;background:#1bd24e;box-shadow:0 0 0 3px rgba(27,210,78,.15); animation: pulse 1.5s infinite;}
-    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(.9)}100%{transform:scale(1)}}
+    .live { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#1a7b32; font-weight:700; background:#e8f8ef; padding:4px 10px; border-radius:99px; }
+    .dot { width:8px; height:8px; background:#1bd24e; border-radius:50%; }
 
     /* Onglets */
-    .tabs{display:flex;gap:8px;padding:6px;background:#f1f5f9;border-radius:16px;margin-bottom:20px}
-    .tab{flex:1;background:transparent;border:none;border-radius:12px;padding:10px;font-weight:700;color:#64748b;cursor:pointer;transition:0.2s}
-    /* Correction : Style actif bien visible */
-    .tab.active{background:#fff;color:#2563eb;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+    .tabs { display:flex; gap:10px; margin-bottom:20px; background:#eef3fa; padding:5px; border-radius:10px; }
+    .tab { flex:1; padding:10px; border:none; background:transparent; font-weight:700; color:#1c4bc7; cursor:pointer; border-radius:8px; text-align:center; }
+    .tab.active { background:#1977f2; color:#fff; }
 
-    /* Dashboard Cards */
-    .dash{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-    .card{flex:1 1 200px; background:linear-gradient(180deg,#ffffff,#f8fafc); border:1px solid #e2e8f0; border-radius:16px; padding:16px; box-shadow:0 10px 25px rgba(0,0,0,0.03)}
-    .card-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px}
-    .card-value{font-size:1.5rem;font-weight:800;color:#0f172a;margin-top:4px}
-    .card-sub{font-size:12px;color:#3b82f6;margin-top:4px}
+    /* Dashboard */
+    .dash { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+    .card { flex:1 1 180px; background:#f7faff; border:1px solid #e1ecff; border-radius:12px; padding:15px; }
+    .card-label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:4px; }
+    .card-value { font-size:1.4rem; font-weight:800; color:#1647a8; }
+    .card-tva { background:#fffbeb; border-color:#fcd34d; }
+    .card-tva .card-label { color:#92400e; }
+    .card-tva .card-value { color:#b45309; }
 
     /* Boutons */
-    .btns{display:flex;gap:8px;flex-wrap:wrap; margin-bottom:16px; position:sticky; top:10px; z-index:20;}
-    .btn{padding:10px 16px;border-radius:12px;border:none;font-weight:700;cursor:pointer;transition:0.2s; font-size:14px; display:inline-flex; align-items:center; gap:6px}
-    .btn-primary{background:linear-gradient(90deg,#2563eb,#4f46e5);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,0.2)}
-    .btn-light{background:#fff;border:1px solid #cbd5e1;color:#334155}
-    .btn-tva{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
-    .btn:hover{transform:translateY(-1px)}
+    .btns { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:15px; position:sticky; top:5px; z-index:10; background:rgba(255,255,255,0.9); padding:5px 0; }
+    .btn { padding:10px 14px; border-radius:8px; font-weight:700; border:none; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; gap:6px; }
+    .btn-primary { background:#1977f2; color:#fff; }
+    .btn-light { background:#f1f6ff; color:#1b47b7; border:1px solid #cfe0ff; }
+    .btn-tva { background:#fffbeb; color:#92400e; border:1px solid #fcd34d; }
+    .btn-settings { background:#f3f4f6; color:#374151; border:1px solid #d1d5db; }
 
-    /* Formulaire Saisie */
-    .form-wrap{background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:20px}
-    .form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    input, select{padding:10px;border-radius:10px;border:1px solid #cbd5e1;font-size:14px;background:#fff}
-    .rdv-block{display:flex;gap:8px;align-items:center;background:#fff;padding:10px;border-radius:12px;border:1px solid #e2e8f0;margin-top:8px;box-shadow:0 2px 5px rgba(0,0,0,0.02)}
+    /* Formulaire */
+    .form-wrap { background:#f8fbff; border:1px solid #bed1f2; border-radius:12px; padding:12px; margin-bottom:15px; }
+    .form-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .rdv-block { background:#fff; border:1px solid #cfe0ff; border-radius:8px; padding:8px; display:flex; gap:6px; align-items:center; margin-bottom:6px; width:100%; }
+    input, select { padding:10px; border:1px solid #bed1f2; border-radius:8px; font-size:14px; background:#fff; }
     
-    /* Filtres */
-    .monthbar{background:#fff;padding:10px;border-radius:14px;border:1px solid #e2e8f0;display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-    
-    /* Table */
-    .table-wrap{background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.03)}
-    table{width:100%;border-collapse:collapse}
-    th{background:#f1f5f9;color:#475569;font-weight:700;padding:12px;text-align:left;font-size:13px;border-bottom:1px solid #e2e8f0}
-    td{padding:12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#334155}
-    tr:hover td{background:#f8fafc}
-    .text-right{text-align:right}
+    /* Bouton Report */
+    .btn-report-off { background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; padding:8px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; width:100%; text-align:center; }
+    .btn-report-on { background:#fff7ed; color:#ea580c; border:1px solid #fed7aa; padding:8px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; width:100%; text-align:center; }
 
-    /* Status & Chips */
-    .pill{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700}
-    .pill-report{background:#fff7ed;color:#ea580c;border:1px solid #fed7aa}
-    .geste-chip{padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+    /* Table Ajustée Mobile */
+    .monthbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; background:#f9fafb; padding:8px; border-radius:8px; }
+    .monthbar input[type="date"] { padding:8px; border:1px solid #d1d5db; border-radius:6px; }
+    .table-wrap { overflow-x:auto; border:1px solid #e5e7eb; border-radius:10px; }
+    
+    table { width:100%; border-collapse:collapse; min-width:100%; }
+    th { background:#f3f4f6; color:#374151; font-weight:700; padding:10px; font-size:12px; text-align:left; border-bottom:2px solid #e5e7eb; }
+    td { padding:12px 10px; border-bottom:1px solid #f3f4f6; font-size:13px; vertical-align: middle; }
+    .text-right { text-align:right; }
+    
+    .pill-report { background:#fff7ed; color:#ea580c; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; border:1px solid #fed7aa; display:inline-block; margin-top:2px; }
+    .geste-chip { background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:800; border:1px solid #bbf7d0; display:inline-block; }
+
+    /* Pagination */
+    .pager { display:flex; justify-content:flex-end; gap:5px; margin-top:10px; align-items:center; }
+    .pager button { padding:6px 12px; border-radius:6px; background:#fff; border:1px solid #ccc; cursor:pointer; font-size:12px; }
+    .pager span { font-size:12px; font-weight:bold; }
 
     /* Modales */
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(3px);z-index:100;align-items:center;justify-content:center}
-    .modal-box{background:#fff;width:90%;max-width:600px;border-radius:20px;padding:24px;box-shadow:0 25px 50px rgba(0,0,0,0.2);max-height:85vh;overflow-y:auto}
-
-    /* Boutons Report */
-    .btn-report-off { background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; padding:8px 12px; font-weight:700; border-radius:8px; cursor:pointer; font-size:13px; width:100%}
-    .btn-report-on { background:#fff7ed; color:#ea580c; border:1px solid #ea580c; padding:8px 12px; font-weight:700; border-radius:8px; cursor:pointer; font-size:13px; width:100%}
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; }
+    .modal-box { background:#fff; width:95%; max-width:800px; border-radius:12px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto; }
+    .modal-head { display:flex; justify-content:space-between; margin-bottom:15px; align-items:center; }
+    .modal-title { font-weight:800; font-size:1.1rem; color:#1e3a8a; }
 
     /* Checkbox TVA */
-    .tva-check-box { padding:15px; border-radius:12px; border:2px solid #cbd5e1; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; font-weight:700; font-size:1.1rem; color:#64748b; transition:0.2s }
-    .tva-check-box.checked { background:#f0fdf4; border-color:#16a34a; color:#166534; }
-    .tva-check-box i { font-size:1.3rem; }
+    .tva-option { display:flex; align-items:center; gap:10px; padding:15px; border:2px solid #e5e7eb; border-radius:10px; cursor:pointer; transition:0.2s; }
+    .tva-option.checked { border-color:#16a34a; background:#f0fdf4; color:#166534; }
+    .tva-option i { font-size:1.2rem; color:#d1d5db; }
+    .tva-option.checked i { color:#16a34a; }
 
-    /* Login */
-    #lockScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e3a8a);display:flex;align-items:center;justify-content:center;z-index:9999}
-    .lock-box{background:#fff;border-radius:24px;padding:30px;width:340px;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.3)}
-
-    .section{display:none} .section.active{display:block}
-
-    /* ===== MOBILE RESPONSIVE (Téléphone) ===== */
-    @media (max-width: 768px) {
-      .wrap { margin: 10px; padding: 15px; width: auto; }
-      .title { font-size: 1.2rem; }
-      .hide-mobile { display: none !important; } /* Cache les colonnes inutiles */
-      th, td { padding: 8px 5px; font-size: 11px; }
-      .btn { padding: 8px 12px; font-size: 12px; }
-      .card { flex: 1 1 100%; } /* Cartes empilées */
-      .monthbar { flex-direction: column; align-items: stretch; }
-      .monthbar select, .monthbar button { width: 100%; }
-      .rdv-block { flex-wrap: wrap; }
-      .clientSel { width: 100%; margin-bottom: 5px; }
-      .commWrap { width: 100%; margin-bottom: 5px; }
+    /* Mobile et Tableaux */
+    @media(min-width:769px){
+        .hide-desktop { display: none; }
+    }
+    @media(max-width:768px){
+      .wrap{ padding:10px; margin:0; border-radius:0; min-height:100vh; }
+      .rdv-block{ flex-wrap:wrap; }
+      .clientSel, .commWrap{ width:100%; }
+      .monthbar select { flex:1; }
+      
+      /* Style Tableau Mobile "Comme la photo" */
+      .hide-mobile { display:none !important; }
+      .show-mobile { display:table-cell !important; }
+      
+      table { table-layout: fixed; }
+      th, td { padding: 10px 4px; font-size: 11px; white-space: normal; word-wrap: break-word; }
+      
+      /* Colonne Date */
+      th:nth-child(2), td:nth-child(2) { width: 65px; } 
+      /* Colonne Agence */
+      th:nth-child(3), td:nth-child(3) { width: auto; font-weight:700; color:#374151; line-height:1.2; }
+      /* Colonne RDV */
+      th:nth-child(4), td:nth-child(4) { width: 30px; text-align:center; }
+      /* Colonne TTC/Etat */
+      th:nth-child(5), td:nth-child(5) { width: 60px; text-align:right; font-weight:800; }
+      /* Colonne Action */
+      th:last-child, td:last-child { width: 40px; text-align:center; }
+      
+      .btn-circle-mob { width:28px; height:28px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; background:#fff; color:#64748b; }
     }
   </style>
 </head>
 <body>
 
-  <div id="lockScreen">
-    <div class="lock-box">
-      <h3 style="font-size:1.4rem;font-weight:800;margin-bottom:20px;color:#1e293b">Accès Sécurisé</h3>
-      <input type="password" id="pwLogin" placeholder="Mot de passe" style="width:100%;margin-bottom:12px">
-      <button onclick="tryLogin()" class="btn btn-primary" style="width:100%;justify-content:center">Entrer</button>
-      <div id="lockErr" style="color:#ef4444;font-size:12px;margin-top:10px;font-weight:700"></div>
+  <div id="lockScreen" style="position:fixed; inset:0; background:#111827; display:flex; align-items:center; justify-content:center; z-index:9999;">
+    <div style="background:#fff; padding:30px; border-radius:16px; width:300px; text-align:center;">
+      <h2 style="margin:0 0 20px 0; color:#1e40af;">Connexion</h2>
+      <input type="password" id="pwLogin" placeholder="Mot de passe" style="width:100%; margin-bottom:10px;">
+      <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="tryLogin()">Entrer</button>
+      <div id="lockErr" style="color:red; margin-top:10px; font-size:12px;"></div>
     </div>
   </div>
 
@@ -130,6 +141,9 @@
       <div class="title">C&N Solutions</div>
       <div class="live-area">
         <div class="live"><span class="dot" id="liveDot"></span> Connecté</div>
+        <button onclick="openSettingsModal()" class="btn btn-settings" style="padding:6px 10px; border-radius:99px" title="Réglages">
+          ⚙️
+        </button>
         <button onclick="changePassword()" class="btn btn-light" style="padding:6px 10px; border-radius:99px" title="Changer mot de passe">
           🔐
         </button>
@@ -137,8 +151,8 @@
     </div>
 
     <div class="tabs">
-      <button id="tabRdv" class="tab active" onclick="switchTab('rdv')">Facturation & RDV</button>
-      <button id="tabClients" class="tab" onclick="switchTab('clients')">Répertoire Agences</button>
+      <button id="tabRdv" class="tab active" onclick="switchTab('rdv')">Facturation</button>
+      <button id="tabClients" class="tab" onclick="switchTab('clients')">Répertoire</button>
     </div>
 
     <div id="section-rdv" class="section active">
@@ -152,47 +166,42 @@
         <button class="btn btn-light" onclick="exportMonthPdfAll()">
           <i class="fa-solid fa-file-pdf"></i> PDF Global
         </button>
-        <button class="btn btn-tva" onclick="openTvaModal()">
-          <i class="fa-solid fa-percent"></i> TVA
-        </button>
       </div>
 
       <div class="form-wrap">
         <form id="rdvForm">
-          <div class="form-row">
-            <input type="date" id="dateSelect" required>
-            <div style="min-width:180px">
+          <div class="form-row" style="margin-bottom:10px;">
+            <input type="date" id="dateSelect" required style="flex:1;">
+            <div style="flex:1; min-width:160px;">
               <button type="button" id="btnCreateReport" class="btn-report-off" onclick="toggleCreateReport()">NON (Mois en cours)</button>
               <input type="hidden" id="chkReportVal" value="false">
             </div>
-            <button type="button" class="btn btn-light" onclick="addRdvBlock()">+ Ajouter RDV</button>
           </div>
           <div id="rdvBlocks"></div>
-          <button type="submit" class="btn btn-primary" style="margin-top:10px">Enregistrer</button>
+          <button type="button" class="btn btn-light" style="width:100%; margin-bottom:8px; justify-content:center;" onclick="addRdvBlock()">+ Ajouter ligne</button>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Enregistrer</button>
         </form>
-        <div id="notif" style="margin-top:10px;font-weight:700;color:#166534"></div>
+        <div id="notif" style="text-align:center; margin-top:8px; font-weight:700; color:#15803d;"></div>
       </div>
 
       <div class="monthbar">
         <input type="date" id="filtreJour" title="Jour précis" onchange="renderTable()" style="max-width:130px;">
-        
-        <label><b>Mois :</b> <select id="moisFiltre"></select></label>
-        <label><b>Agence :</b> <select id="filtreAgence"></select></label>
-        <label><b>Comm. :</b> <select id="filtreCommercial"></select></label>
-        <button class="btn btn-light" onclick="clearFilters()" style="padding:6px 10px;font-size:12px">Effacer</button>
-        <button class="btn" style="background:#fee2e2;color:#991b1b;padding:6px 10px;font-size:12px" onclick="deleteSelected()">Suppr. coché</button>
+        <label>Mois:</label> <select id="moisFiltre"></select>
+        <label>Agence:</label> <select id="filtreAgence"></select>
+        <label>Comm:</label> <select id="filtreCommercial"></select>
+        <button class="btn btn-light" onclick="clearFilters()">Effacer</button>
+        <button class="btn" style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;" onclick="deleteSelected()">Suppr.</button>
       </div>
-
+      
       <div class="table-wrap">
         <table>
           <thead id="tableHead"></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
-      <div id="pager" style="margin-top:12px;display:flex;justify-content:flex-end;gap:5px"></div>
+      <div id="pager" class="pager"></div>
     </div>
-
-    <div id="section-clients" class="section">
+    <div id="section-clients" style="display:none">
       <div class="form-wrap">
         <form id="clientForm" class="form-row">
           <input type="text" id="clientAgence" placeholder="Nom Agence" style="flex:2">
@@ -204,51 +213,74 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Agence</th><th>Commerciaux</th><th>Tarif Réf.</th><th>Actions</th></tr></thead>
+          <thead>
+              <tr>
+                  <th>Agence</th>
+                  <th class="hide-mobile">Commerciaux</th>
+                  <th class="hide-mobile">Tarif</th>
+                  <th class="text-right">Actions</th>
+              </tr>
+          </thead>
           <tbody id="tbodyClients"></tbody>
         </table>
       </div>
     </div>
-  </div>
-
-  <div id="bilanModal" class="modal-overlay">
-    <div class="modal-box">
-      <div style="display:flex;justify-content:space-between;margin-bottom:15px">
-        <h3 style="font-weight:800;font-size:1.2rem;color:#1e3a8a">Bilan Détaillé</h3>
-        <button onclick="closeModal('bilanModal')" style="background:none;border:none;font-size:20px;cursor:pointer">×</button>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:15px">
-        <button id="btnMonth" class="btn btn-primary" onclick="setBilanPeriod('month')">Mois en cours</button>
-        <button id="btnYear" class="btn btn-light" onclick="setBilanPeriod('year')">Année complète</button>
-      </div>
-      <div id="bilanDetails"></div>
     </div>
-  </div>
 
-  <div id="tvaModal" class="modal-overlay">
-    <div class="modal-box" style="max-width:400px;text-align:center">
-      <h3 style="font-weight:800;margin-bottom:20px">Réglages TVA</h3>
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:500px">
+      <div class="modal-head">
+        <div class="modal-title">Réglages & TVA</div>
+        <button onclick="closeModal('settingsModal')" style="background:none; border:none; font-size:24px;">×</button>
+      </div>
       
-      <div id="tvaBox" class="tva-check-box" onclick="toggleTvaBox()">
-        <i id="tvaIcon" class="fa-regular fa-circle"></i>
-        <span>Assujetti à la TVA</span>
-        <input type="checkbox" id="tvaActive" style="display:none">
+      <div style="margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;">
+        <label style="font-weight:700; display:block; margin-bottom:5px;">Logo (Haut PDF)</label>
+        <div style="display:flex; align-items:center; gap:10px;">
+           <img id="logoPreview" style="width:50px; height:50px; object-fit:contain; border:1px solid #eee; display:none;">
+           <input type="file" accept="image/*" onchange="handleLogo(this)">
+           <input type="hidden" id="logoBase64">
+        </div>
       </div>
 
-      <div id="tvaRateBlock" style="display:none;text-align:left;margin-top:20px">
-        <label>Taux (%)</label>
-        <input type="number" id="tvaRate" value="20" style="width:100%;font-size:1.2rem;font-weight:bold;text-align:center">
+      <div style="margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;">
+        <label style="font-weight:700; display:block; margin-bottom:5px;">Cachet / Signature (Bas PDF)</label>
+        <div style="display:flex; align-items:center; gap:10px;">
+           <img id="sigPreview" style="width:80px; height:40px; object-fit:contain; border:1px solid #eee; display:none;">
+           <input type="file" accept="image/*" onchange="handleSignature(this)">
+           <input type="hidden" id="sigBase64">
+        </div>
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center; margin-top:20px" onclick="saveTvaConfig()">Enregistrer</button>
-      <button class="btn btn-light" style="width:100%;justify-content:center;margin-top:8px" onclick="closeModal('tvaModal')">Fermer</button>
+
+      <div class="tva-option" id="tvaOptionBox" onclick="toggleTvaBox()">
+        <i id="tvaCheckIcon" class="fa-regular fa-circle"></i>
+        <div style="flex:1;">
+          <div style="font-weight:700;">Assujetti à la TVA</div>
+          <div style="font-size:12px; opacity:0.7;">Activer le calcul automatique</div>
+        </div>
+        <input type="checkbox" id="tvaActive" style="display:none;">
+      </div>
+
+      <div id="tvaFields" style="display:none; margin-top:15px; background:#f9fafb; padding:15px; border-radius:8px;">
+         <label style="font-size:12px; font-weight:700;">Taux de TVA (%)</label>
+         <input type="number" id="tvaRate" value="20" style="width:100%; margin-top:5px;">
+         
+         <label style="font-size:12px; font-weight:700; display:block; margin-top:10px;">Date début TVA</label>
+         <input type="date" id="tvaStart" style="width:100%; margin-top:5px;">
+         <div style="font-size:11px; color:#6b7280; margin-top:2px;">(La TVA s'appliquera aux RDV après cette date)</div>
+      </div>
+
+      <div style="margin-top:20px; text-align:center;">
+        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="saveSettings()">Enregistrer tout</button>
+      </div>
     </div>
   </div>
 
   <div id="editModal" class="modal-overlay">
-    <div class="modal-box">
-      <div style="display:flex;justify-content:space-between;margin-bottom:15px">
-        <h3 style="font-weight:800;font-size:1.2rem;color:#1e3a8a">Modifier RDV</h3>
-        <button onclick="closeModal('editModal')" style="background:none;border:none;font-size:20px;cursor:pointer">×</button>
+    <div class="modal-box" style="max-width:500px">
+      <div class="modal-head">
+        <div class="modal-title">Modifier RDV</div>
+        <button onclick="closeModal('editModal')" style="background:none; border:none; font-size:24px;">×</button>
       </div>
       <input type="hidden" id="editId">
       
@@ -289,22 +321,29 @@
     </div>
   </div>
 
+  <div id="bilanModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:800px;">
+      <div class="modal-head">
+        <div class="modal-title">Bilans Commerciaux</div>
+        <button onclick="closeModal('bilanModal')" style="background:none; border:none; font-size:24px;">×</button>
+      </div>
+      <div style="display:flex; gap:10px; margin-bottom:15px;">
+         <button id="btnBilanMonth" class="btn btn-primary" style="flex:1; justify-content:center;" onclick="setBilanPeriod('month')">Mois</button>
+         <button id="btnBilanYear" class="btn btn-light" style="flex:1; justify-content:center;" onclick="setBilanPeriod('year')">Année</button>
+      </div>
+      <div id="bilanContent" style="display:flex; flex-direction:column; gap:15px;"></div>
+    </div>
+  </div>
+
 <script>
-/* ================= INITIALISATION ================= */
+/* ================= CONFIG ================= */
 const firebaseConfig={apiKey:"AIzaSyC99x3m-J0M14YWL_PhD3-X8GyZTXwkfes",authDomain:"bilan-rdv-pro.firebaseapp.com",projectId:"bilan-rdv-pro",storageBucket:"bilan-rdv-pro.appspot.com",messagingSenderId:"453220474263",appId:"1:453220474263:web:e1226ff79656af1eee78d2"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
 const MONTHS_FR=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 const pad=n=>String(n).padStart(2,'0');
-
-const fmt=n=>{
-    let x = Number(n||0).toFixed(2);
-    let parts = x.split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " "); 
-    return parts.join(',');
-};
-
+const fmt=n=>{ let x=Number(n||0).toFixed(2); return x.replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g," "); };
 const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
 const monthKey=d=>{if(typeof d==='string')d=new Date(d);return `${d.getFullYear()}-${pad(d.getMonth()+1)}`;}
 const getNextMonthKey=s=>{const d=new Date(s); d.setDate(1); d.setMonth(d.getMonth()+1); return monthKey(d);}
@@ -312,11 +351,13 @@ const labelMonth=m=>{if(!m)return'';const[y,mo]=m.split('-');return `${MONTHS_FR
 const formatDate=s=>{if(!s)return'-';return new Date(s).toLocaleDateString('fr-FR');}
 
 let rows=[], clientsRows=[];
-let TVA={active:false,rate:20};
+let CONFIG={ tvaActive:false, tvaRate:20, logo:"", signature:"", tvaStart:"" };
 let bilanPeriod='month';
 let editingId=null;
+let currentPage = 1;
+const ITEMS_PER_PAGE = 15;
 
-/* ================= ACCESS & START ================= */
+/* ================= AUTH ================= */
 async function tryLogin(){
     const pw=document.getElementById('pwLogin').value;
     const h=await sha256(pw);
@@ -324,105 +365,98 @@ async function tryLogin(){
     if(snap.exists && snap.data().adminHash===h){
         document.getElementById('lockScreen').style.display='none';
         document.getElementById('app').style.display='block';
-        loadTvaConfig();
+        loadSettings();
         initListeners();
     } else { document.getElementById('lockErr').textContent="Erreur mot de passe"; }
 }
+document.getElementById('pwLogin').addEventListener('keyup', e=>{ if(e.key==='Enter') tryLogin(); });
 async function sha256(m){const b=new TextEncoder().encode(m);const h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');}
-
 async function changePassword(){
-    const p = prompt("Nouveau mot de passe ?");
-    if(!p) return;
-    const h = await sha256(p);
-    await db.collection('config').doc('access').set({adminHash:h});
-    alert("Mot de passe modifié !");
+    const p=prompt("Nouveau mot de passe ?"); if(!p)return;
+    const h=await sha256(p); await db.collection('config').doc('access').set({adminHash:h}); alert("Mot de passe modifié !");
 }
 
-async function loadTvaConfig(){
+/* ================= SETTINGS ================= */
+async function loadSettings(){
     try{
-        const d=await db.collection('config').doc('tva').get();
-        if(d.exists){ TVA.active=!!d.data().active; TVA.rate=d.data().rate||20; }
+        const d=await db.collection('config').doc('settings').get();
+        if(d.exists) CONFIG={...CONFIG, ...d.data()};
     }catch(e){}
     renderTable();
 }
-
-/* --- LOGIQUE MODALE TVA --- */
-function openTvaModal(){
-    const chk = document.getElementById('tvaActive');
-    chk.checked = TVA.active; 
+function openSettingsModal(){
+    document.getElementById('tvaActive').checked = CONFIG.tvaActive;
     refreshTvaBoxUI();
-    document.getElementById('tvaRate').value = TVA.rate;
-    document.getElementById('tvaModal').style.display='flex';
+    document.getElementById('tvaRate').value = CONFIG.tvaRate;
+    document.getElementById('tvaStart').value = CONFIG.tvaStart;
+    document.getElementById('logoBase64').value = CONFIG.logo;
+    document.getElementById('sigBase64').value = CONFIG.signature;
+    if(CONFIG.logo) { document.getElementById('logoPreview').src=CONFIG.logo; document.getElementById('logoPreview').style.display='block'; }
+    if(CONFIG.signature) { document.getElementById('sigPreview').src=CONFIG.signature; document.getElementById('sigPreview').style.display='block'; }
+    document.getElementById('settingsModal').style.display='flex';
 }
 function toggleTvaBox(){
-    const chk = document.getElementById('tvaActive');
-    chk.checked = !chk.checked; 
-    refreshTvaBoxUI(); 
+    const chk = document.getElementById('tvaActive'); chk.checked = !chk.checked; refreshTvaBoxUI();
 }
 function refreshTvaBoxUI(){
     const chk = document.getElementById('tvaActive');
-    const box = document.getElementById('tvaBox');
-    const icon = document.getElementById('tvaIcon');
-    const rateBlock = document.getElementById('tvaRateBlock');
-
+    const box = document.getElementById('tvaOptionBox');
+    const icon = document.getElementById('tvaCheckIcon');
+    const fields = document.getElementById('tvaFields');
     if(chk.checked){
-        box.classList.add('checked');
-        icon.className = "fa-solid fa-check-circle";
-        rateBlock.style.display = 'block';
+        box.classList.add('checked'); icon.className = "fa-solid fa-check-circle"; fields.style.display = 'block';
     } else {
-        box.classList.remove('checked');
-        icon.className = "fa-regular fa-circle";
-        rateBlock.style.display = 'none';
+        box.classList.remove('checked'); icon.className = "fa-regular fa-circle"; fields.style.display = 'none';
     }
 }
-function saveTvaConfig(){
-    TVA.active = document.getElementById('tvaActive').checked;
-    TVA.rate = Number(document.getElementById('tvaRate').value);
-    db.collection('config').doc('tva').set(TVA);
-    closeModal('tvaModal'); 
-    renderTable(); 
+function handleLogo(inp){
+    if(inp.files[0]){
+        const r=new FileReader();
+        r.onload=e=>{ document.getElementById('logoPreview').src=e.target.result; document.getElementById('logoPreview').style.display='block'; document.getElementById('logoBase64').value=e.target.result; };
+        r.readAsDataURL(inp.files[0]);
+    }
+}
+function handleSignature(inp){
+    if(inp.files[0]){
+        const r=new FileReader();
+        r.onload=e=>{ document.getElementById('sigPreview').src=e.target.result; document.getElementById('sigPreview').style.display='block'; document.getElementById('sigBase64').value=e.target.result; };
+        r.readAsDataURL(inp.files[0]);
+    }
+}
+async function saveSettings(){
+    CONFIG.tvaActive = document.getElementById('tvaActive').checked;
+    CONFIG.tvaRate = Number(document.getElementById('tvaRate').value);
+    CONFIG.tvaStart = document.getElementById('tvaStart').value;
+    CONFIG.logo = document.getElementById('logoBase64').value;
+    CONFIG.signature = document.getElementById('sigBase64').value;
+    await db.collection('config').doc('settings').set(CONFIG, {merge:true});
+    closeModal('settingsModal'); renderTable();
 }
 
-/* ================= LISTENERS DATA ================= */
+/* ================= DATA ================= */
 function initListeners(){
     db.collection('clients').onSnapshot(s=>{
         clientsRows=[]; s.forEach(d=>clientsRows.push({id:d.id,...d.data()}));
         clientsRows.sort((a,b)=>(a.agence||"").localeCompare(b.agence||""));
         renderClientsTable();
     });
-
     db.collection('rdv_ajouts').onSnapshot(s=>{
         document.getElementById('liveDot').style.background='#1bd24e';
-        rows=[];
-        s.forEach(d=>{
-            const r=d.data();
-            r.total = Number(r.total||(r.rdv*r.tarif));
-            r.gesteMontant = r.geste ? Number(r.gesteMontant||0) : 0;
-            r.netTotal = Math.max(0, r.total - r.gesteMontant);
-            rows.push({id:d.id,...r});
+        rows=[]; s.forEach(d=>{
+            const r=d.data(); r.total=Number(r.total||(r.rdv*r.tarif)); r.netTotal=Math.max(0,r.total-(r.geste?r.gesteMontant:0)); rows.push({id:d.id,...r});
         });
-        
         if(!document.getElementById('moisFiltre').value) buildMonthOptions('moisFiltre');
         renderTable();
     });
 }
 
-/* ================= SAISIE RDV (AVEC BOUTON REPORT) ================= */
+/* ================= SAISIE ================= */
 function toggleCreateReport(){
     const btn = document.getElementById('btnCreateReport');
     const inp = document.getElementById('chkReportVal');
-    
-    if(inp.value === "false"){
-        inp.value = "true";
-        btn.className = "btn-report-on";
-        btn.textContent = "OUI (Report M+1)";
-    } else {
-        inp.value = "false";
-        btn.className = "btn-report-off";
-        btn.textContent = "NON (Mois en cours)";
-    }
+    if(inp.value === "false"){ inp.value = "true"; btn.className = "btn-report-on"; btn.textContent = "OUI (Report M+1)"; } 
+    else { inp.value = "false"; btn.className = "btn-report-off"; btn.textContent = "NON (Mois en cours)"; }
 }
-
 function addRdvBlock(){
     const d=document.createElement('div'); d.className='rdv-block';
     d.innerHTML=`<select class="clientSel" style="flex:2" onchange="onClientChange(this)"></select>
@@ -432,9 +466,7 @@ function addRdvBlock(){
     document.getElementById('rdvBlocks').appendChild(d);
     fillClientSelect(d.querySelector('.clientSel'));
 }
-function fillClientSelect(s){
-    s.innerHTML=`<option value="">Agence...</option>`+clientsRows.map(c=>`<option value="${c.id}">${c.agence}</option>`).join('');
-}
+function fillClientSelect(s){ s.innerHTML=`<option value="">Agence...</option>`+clientsRows.map(c=>`<option value="${c.id}">${c.agence}</option>`).join(''); }
 function onClientChange(sel){
     const cli=clientsRows.find(c=>c.id===sel.value);
     const wrap=sel.parentElement.querySelector('.commWrap');
@@ -447,9 +479,7 @@ function onClientChange(sel){
             const btn=document.createElement('button'); btn.type='button'; btn.textContent='+'; btn.style.padding='2px 6px';
             btn.onclick=()=>addCommLine(wrap,cli.commerciaux);
             wrap.appendChild(btn);
-        } else {
-            wrap.innerHTML=`<input type="number" class="rdvVal" value="1" style="width:50px" placeholder="Nb">`;
-        }
+        } else { wrap.innerHTML=`<input type="number" class="rdvVal" value="1" style="width:50px" placeholder="Nb">`; }
     }
 }
 function addCommLine(wrap,list){
@@ -457,25 +487,19 @@ function addCommLine(wrap,list){
     d.innerHTML=`<select class="commSel"><option value="">-</option>${list.map(x=>`<option>${x}</option>`).join('')}</select><input type="number" class="rdvVal" value="5" style="width:40px">`;
     wrap.insertBefore(d,wrap.firstChild);
 }
-
 document.getElementById('rdvForm').onsubmit=async(e)=>{
     e.preventDefault();
     const date=document.getElementById('dateSelect').value;
     if(!date)return alert("Date requise");
-    
-    // Lire la valeur du bouton
     const isReport = document.getElementById('chkReportVal').value === "true";
     const targetMonth=isReport?getNextMonthKey(date):monthKey(date);
-    
     const batch=db.batch();
-    
     document.querySelectorAll('.rdv-block').forEach(b=>{
         const cliId=b.querySelector('.clientSel').value;
         const cli=clientsRows.find(c=>c.id===cliId);
         if(!cli) return;
         const tarif=Number(b.querySelector('.tarifIn').value);
         const comms=b.querySelectorAll('.commSel');
-        
         if(comms.length>0){
             comms.forEach(c=>{
                 const name=c.value; const nb=Number(c.nextElementSibling.value);
@@ -486,15 +510,11 @@ document.getElementById('rdvForm').onsubmit=async(e)=>{
             if(nb>0) addBatch(batch,cli,"",nb,tarif,date,targetMonth,isReport);
         }
     });
-    
     await batch.commit();
     document.getElementById('rdvBlocks').innerHTML=''; addRdvBlock();
-    
-    // Reset du bouton report
     document.getElementById('chkReportVal').value = "false";
     document.getElementById('btnCreateReport').className = "btn-report-off";
     document.getElementById('btnCreateReport').textContent = "NON (Mois en cours)";
-
     buildMonthOptions('moisFiltre');
 }
 function addBatch(batch,cli,comm,rdv,tarif,date,targetMonth,isReport){
@@ -506,29 +526,31 @@ function addBatch(batch,cli,comm,rdv,tarif,date,targetMonth,isReport){
     });
 }
 
-/* ================= RENDERING TABLE & CALCULS ================= */
+/* ================= CALCULS TVA ================= */
+function isTvaApplicable(rDate){
+    if(!CONFIG.tvaActive) return false;
+    if(!CONFIG.tvaStart) return false;
+    return rDate >= CONFIG.tvaStart;
+}
 function getLineVals(r){
-    const ht = r.netTotal; // Base HT
-    const tva = TVA.active ? (ht * TVA.rate / 100) : 0;
-    return { ht, tva, ttc: ht + tva };
+    const applicable = isTvaApplicable(r.date);
+    const ht = r.netTotal; 
+    const tva = applicable ? (ht * CONFIG.tvaRate / 100) : 0;
+    return { ht, tva, ttc: ht + tva, applicable };
 }
 
+/* ================= TABLE & FILTER ================= */
 function getFilteredData(ignoreFilters=false){
     const jour = document.getElementById('filtreJour').value;
     const m = document.getElementById('moisFiltre').value;
     const ag = document.getElementById('filtreAgence').value;
     const co = document.getElementById('filtreCommercial').value;
-
     let data = rows.filter(r => {
-        // Filtre Jour Précis (Prioritaire)
         if(jour) return (r.date === jour || r.periodDate === jour);
-        
-        // Sinon Filtre Mois (Facturé ou Activité reportée)
         const billingM = r.periodMonth || monthKey(r.date);
         const activityM = monthKey(r.periodDate || r.date);
         return (billingM === m) || (activityM === m && r.reporte);
     });
-
     if(!ignoreFilters){
         if(ag) data=data.filter(r=>r.agence===ag);
         if(co) data=data.filter(r=>r.commercial===co);
@@ -536,59 +558,84 @@ function getFilteredData(ignoreFilters=false){
     return data.sort((a,b)=>a.date.localeCompare(b.date));
 }
 
+function changePage(delta) { currentPage += delta; renderTable(); }
+
 function renderTable(){
     const tbody=document.getElementById('tbody');
     const thead=document.getElementById('tableHead');
     tbody.innerHTML='';
     
-    let h=`<tr><th style="width:30px" class="hide-mobile"><input type="checkbox" onclick="toggleAll(this)"></th>
-           <th>Date</th><th>Agence</th><th class="hide-mobile">Comm.</th><th class="text-right">RDV</th><th class="text-right hide-mobile">Tarif</th>`;
-    if(TVA.active) h+=`<th class="text-right hide-mobile">HT</th><th class="text-right hide-mobile">TVA</th><th class="text-right">TTC</th>`;
-    else h+=`<th class="text-right">Total</th>`;
-    h+=`<th>Etat</th><th class="text-right">Actions</th></tr>`;
+    // HEADERS ADAPTÉS MOBILE
+    let h=`<tr>
+             <th style="width:30px" class="hide-mobile"><input type="checkbox" onclick="toggleAll(this)"></th>
+             <th>Date</th>
+             <th>Agence</th>
+             <th class="hide-mobile">Comm.</th>
+             <th class="text-right">RDV</th>
+             <th class="text-right hide-mobile">Tarif</th>`;
+    
+    if(CONFIG.tvaActive) {
+        h+=`<th class="text-right hide-mobile">HT</th><th class="text-right hide-mobile">TVA</th>`;
+    }
+    
+    // Si TVA, on montre TTC, sinon on montre le total Net (HT)
+    // Pour que ça tienne sur mobile, on appellera la colonne "TTC" ou "Total"
+    h+=`<th class="text-right">Total</th>`; 
+    h+=`<th class="text-right">Actions</th></tr>`;
+    
     thead.innerHTML=h;
     
     const data=getFilteredData();
     renderDashboard(data);
     
-    const PAGE=window.curPage||1; const SIZE=15; // 15 par page
-    const maxP=Math.ceil(data.length/SIZE)||1;
-    if(PAGE>maxP)window.curPage=1;
+    const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+    if(currentPage < 1) currentPage = 1;
+    if(currentPage > totalPages && totalPages > 0) currentPage = totalPages;
     
-    data.slice((PAGE-1)*SIZE, PAGE*SIZE).forEach(r=>{
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const pageData = data.slice(start, start + ITEMS_PER_PAGE);
+    
+    pageData.forEach(r=>{
         const v=getLineVals(r);
         const tr=document.createElement('tr');
-        
-        const currentFilter = document.getElementById('moisFiltre').value;
-        const isFutureBill = (r.periodMonth > currentFilter);
-        
-        if(isFutureBill) {
-            tr.style.opacity = "0.7";
-            tr.style.background = "#f8fafc";
-        }
+        const isFutureBill = (r.periodMonth > document.getElementById('moisFiltre').value);
+        if(isFutureBill) { tr.style.opacity = "0.7"; tr.style.background = "#f8fafc"; }
 
+        // CELLULES ADAPTÉES MOBILE
         let html=`<td class="hide-mobile"><input type="checkbox" class="chk" data-id="${r.id}"></td>
                   <td>${formatDate(r.periodDate||r.date)}</td>
-                  <td>${r.agence}</td><td class="hide-mobile">${r.commercial||''}</td>
+                  <td>${r.agence} <div class="hide-mobile" style="font-size:10px;font-weight:normal;color:#666">${r.commercial||''}</div></td>
+                  <td class="hide-mobile">${r.commercial||''}</td>
                   <td class="text-right"><b>${r.rdv}</b></td>
                   <td class="text-right hide-mobile">${fmt(r.tarif)}</td>`;
-        if(TVA.active) html+=`<td class="text-right hide-mobile">${fmt(v.ht)}€</td><td class="text-right hide-mobile" style="color:#64748b">${fmt(v.tva)}€</td><td class="text-right"><b>${fmt(v.ttc)}€</b></td>`;
-        else html+=`<td class="text-right"><b>${fmt(v.ht)}€</b></td>`;
+        
+        if(CONFIG.tvaActive){
+            html+=`<td class="text-right hide-mobile">${fmt(v.ht)}€</td><td class="text-right hide-mobile" style="color:#64748b">${fmt(v.tva)}€</td>`;
+        }
+        
+        // Colonne Total / Etat
+        let displayTotal = CONFIG.tvaActive ? v.ttc : v.ht;
         
         let status = "";
-        if(r.reporte || isFutureBill) status+=`<span class="pill pill-report">REPORTÉ M+1</span> `;
-        if(r.geste) status+=`<span class="geste-chip">-${r.gesteMontant}€</span>`;
-        
-        html+=`<td>${status}</td>
+        if(r.reporte || isFutureBill) status+=`<div class="pill-report">REPORTÉ</div>`;
+        if(r.geste) status+=`<div class="geste-chip">-${r.gesteMontant}€</div>`;
+
+        html+=`<td class="text-right">
+                  <div>${fmt(displayTotal)}€</div>
+                  ${status}
+               </td>
                <td class="text-right">
-                 <button class="btn btn-light" style="padding:4px 8px" onclick="openEditModal('${r.id}')">✎</button>
+                 <button class="btn btn-light btn-circle-mob" onclick="openEditModal('${r.id}')"><i class="fa-solid fa-pen"></i></button>
                </td>`;
         tr.innerHTML=html;
         tbody.appendChild(tr);
     });
     
-    document.getElementById('pager').innerHTML=`<button onclick="window.curPage=Math.max(1,window.curPage-1);renderTable()" class="btn btn-light">Préc.</button> <span>Page ${PAGE}/${maxP}</span> <button onclick="window.curPage=Math.min(${maxP},window.curPage+1);renderTable()" class="btn btn-light">Suiv.</button>`;
-    
+    document.getElementById('pager').innerHTML=`
+        <button onclick="changePage(-1)" ${currentPage===1?'disabled':''}>Préc.</button> 
+        <span>Page ${currentPage} / ${totalPages||1}</span> 
+        <button onclick="changePage(1)" ${currentPage>=totalPages?'disabled':''}>Suiv.</button>
+    `;
     updateSelects();
 }
 
@@ -596,45 +643,36 @@ function renderDashboard(viewData){
     const m = document.getElementById('moisFiltre').value;
     const jour = document.getElementById('filtreJour').value;
     let rdv=0, ht=0, tva=0, ttc=0;
-
     viewData.forEach(r=>{
-        // Dashboard ne compte que ce qui est affiché ET pertinent (jour précis OU mois facturé)
         const billingM = r.periodMonth || monthKey(r.date);
-        
         if(jour || billingM === m) {
-            rdv+=r.rdv; 
-            const v=getLineVals(r); ht+=v.ht; tva+=v.tva; ttc+=v.ttc;
+            rdv+=r.rdv; const v=getLineVals(r); ht+=v.ht; tva+=v.tva; ttc+=v.ttc;
         }
     });
-    
-    let h=`<div class="card"><div class="card-label">CA HT</div><div class="card-value">${fmt(ht)}€</div><div class="card-sub">${rdv} RDV</div></div>`;
-    if(TVA.active){
-        h+=`<div class="card"><div class="card-label">TVA (${TVA.rate}%)</div><div class="card-value" style="color:#d97706">${fmt(tva)}€</div></div>`;
+    let h=`<div class="card"><div class="card-label">CA ${CONFIG.tvaActive?'HT':''}</div><div class="card-value">${fmt(ht)}€</div><div class="card-sub">${rdv} RDV</div></div>`;
+    if(CONFIG.tvaActive){
+        h+=`<div class="card"><div class="card-label">TVA Collectée</div><div class="card-value" style="color:#d97706">${fmt(tva)}€</div></div>`;
         h+=`<div class="card"><div class="card-label">Total TTC</div><div class="card-value" style="color:#166534">${fmt(ttc)}€</div></div>`;
     }
     document.getElementById('dashboard').innerHTML=h;
 }
 
-/* ================= MODALE EDIT (CRAYON) ================= */
+/* ================= EDIT MODAL ================= */
 function openEditModal(id){
     const r=rows.find(x=>x.id===id);
     document.getElementById('editId').value=id;
     document.getElementById('editDate').value=r.date;
     document.getElementById('editAgence').value=r.agence;
-    
     const cli=clientsRows.find(c=>c.id===r.clientId);
     const s=document.getElementById('editComm');
     s.innerHTML='<option value="">-</option>'+(cli?.commerciaux||[]).map(x=>`<option ${x===r.commercial?'selected':''}>${x}</option>`).join('');
-    
     document.getElementById('editRdv').value=r.rdv;
     document.getElementById('editTarif').value=r.tarif;
-    
     const btn=document.getElementById('btnEditReport');
     const val=document.getElementById('editReportVal');
     val.value = r.reporte ? 'true' : 'false';
     btn.className = r.reporte ? 'btn-report-on' : 'btn-report-off';
     btn.textContent = r.reporte ? 'OUI (Report M+1)' : 'NON (Mois en cours)';
-    
     document.getElementById('editModal').style.display='flex';
 }
 function toggleEditReport(){
@@ -654,64 +692,56 @@ async function saveEdit(){
     const tarif=Number(document.getElementById('editTarif').value);
     const isReport=document.getElementById('editReportVal').value==='true';
     const tm=isReport?getNextMonthKey(date):monthKey(date);
-    
     await db.collection('rdv_ajouts').doc(id).update({
-        date, periodDate:date, periodMonth:tm,
-        commercial:comm, rdv, tarif, total:rdv*tarif,
-        reporte:isReport
+        date, periodDate:date, periodMonth:tm, commercial:comm, rdv, tarif, total:rdv*tarif, reporte:isReport
     });
     closeModal('editModal');
 }
 
-/* ================= BILANS & PDF (LOGIQUE D'ORIGINE) ================= */
+/* ================= BILANS & PDF ================= */
 function setBilanPeriod(p){
     bilanPeriod = p;
-    document.getElementById('btnMonth').className = (p==='month' ? 'btn btn-primary' : 'btn btn-light');
-    document.getElementById('btnYear').className = (p==='year' ? 'btn btn-primary' : 'btn btn-light');
+    document.getElementById('btnBilanMonth').className = (p==='month' ? 'btn btn-primary' : 'btn btn-light');
+    document.getElementById('btnBilanYear').className = (p==='year' ? 'btn btn-primary' : 'btn btn-light');
     showBilanCommercial();
 }
-
 function showBilanCommercial(){
-    const currentFilterMonth = document.getElementById('moisFiltre').value;
-    const year = currentFilterMonth.split('-')[0];
-    
+    const mm = document.getElementById('moisFiltre').value;
+    const year = mm.split('-')[0];
     let data;
-    if(bilanPeriod === 'year'){
-        data = rows.filter(r => (r.periodMonth || monthKey(r.date)).startsWith(year));
-    } else {
-        data = rows.filter(r => (r.periodMonth || monthKey(r.date)) === currentFilterMonth);
-    }
-    
+    if(bilanPeriod === 'year'){ data = rows.filter(r => (r.periodMonth || monthKey(r.date)).startsWith(year)); } 
+    else { data = rows.filter(r => (r.periodMonth || monthKey(r.date)) === mm); }
     let map = {};
     data.forEach(r => {
-        let k = r.agence;
-        if(!map[k]) map[k] = {};
-        let c = r.commercial || "Autre";
-        if(!map[k][c]) map[k][c] = {rdv:0, total:0};
-        map[k][c].rdv += r.rdv;
-        map[k][c].total += r.netTotal;
+        let k = r.agence; if(!map[k]) map[k] = {};
+        let c = r.commercial || "Autre"; if(!map[k][c]) map[k][c] = {rdv:0, total:0};
+        map[k][c].rdv += r.rdv; map[k][c].total += r.netTotal;
     });
 
-    // AFFICHAGE RESTAURÉ: Liste Agences > Tableau Commerciaux
-    let html = `<div style="display:flex;flex-direction:column;gap:12px">`;
+    let html = `<div class="table-wrap"><table>
+      <thead><tr>
+         <th style="background:#fff;border-bottom:2px solid #333">Agence</th>
+         <th style="background:#fff;border-bottom:2px solid #333" class="hide-mobile">Commercial</th>
+         <th style="background:#fff;border-bottom:2px solid #333" class="text-right">RDV</th>
+         <th style="background:#fff;border-bottom:2px solid #333" class="text-right">Total HT</th>
+         <th style="background:#fff;border-bottom:2px solid #333" class="text-right">Action</th>
+      </tr></thead><tbody>`;
+    
     Object.keys(map).sort().forEach(ag => {
-        html += `<div style="background:#f8fafc;padding:10px;border-radius:10px;border:1px solid #e2e8f0">
-            <strong style="color:#1e3a8a;display:block;margin-bottom:6px;font-size:1.1rem">${ag}</strong>
-            <table style="font-size:12px;width:100%">`;
         Object.keys(map[ag]).sort().forEach(comm => {
             const d = map[ag][comm];
             html += `<tr>
-                <td style="width:150px">${comm}</td>
-                <td><b>${d.rdv}</b> RDV</td>
-                <td>${fmt(d.total)} €</td>
-                <td class="text-right"><button class="btn btn-light" style="padding:2px 8px;font-size:10px" onclick="exportBilanPdf('commercial','${ag}','${comm}')">PDF</button></td>
+              <td style="font-weight:700;color:#1e3a8a">${ag} <div class="show-mobile" style="display:none;font-size:10px;font-weight:normal;color:#666">${comm}</div></td>
+              <td class="hide-mobile">${comm}</td>
+              <td class="text-right"><b>${d.rdv}</b></td>
+              <td class="text-right">${fmt(d.total)} €</td>
+              <td class="text-right"><button class="btn btn-light" style="padding:4px 10px;font-size:11px" onclick="exportBilanPdf('commercial','${ag}','${comm}')"><i class="fa-solid fa-file-pdf"></i></button></td>
             </tr>`;
         });
-        html += `</table></div>`;
     });
-    html += `</div>`;
+    html += `</tbody></table></div>`;
     
-    document.getElementById('bilanDetails').innerHTML = html;
+    document.getElementById('bilanContent').innerHTML = html;
     document.getElementById('bilanModal').style.display='flex';
 }
 
@@ -719,134 +749,102 @@ function exportBilanPdf(scope, agence, commercial){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: (scope==='commercial')?'landscape':'portrait' });
     const mm = document.getElementById('moisFiltre').value;
-    const jour = document.getElementById('filtreJour').value; // Prise en compte Jour
+    const jour = document.getElementById('filtreJour').value;
     const year = mm.split('-')[0];
-    
-    let data;
-    let labelP = "";
-    
-    // CAS 1 : JOUR PRECIS
+    if(CONFIG.logo){ try{ doc.addImage(CONFIG.logo, 'JPEG', 14, 10, 30, 30); }catch(e){} }
+    let data, labelP;
     if(jour) {
         data = rows.filter(r => (r.date === jour || r.periodDate === jour));
         labelP = "JOURNÉE DU " + formatDate(jour);
-        
-        // Texte introductif demandé
-        doc.setFontSize(10);
-        doc.setTextColor(50);
+        doc.setFontSize(10); doc.setTextColor(50);
         doc.text("Bonjour, suite à votre demande, voici le récapitulatif des RDV pour cette date.", 14, 20);
-    } 
-    // CAS 2 : PÉRIODE (Mois/Année)
-    else {
-        if(bilanPeriod === 'year'){
-            data = rows.filter(r => (r.periodMonth || monthKey(r.date)).startsWith(year));
-            labelP = "Année " + year;
-        } else {
-            data = rows.filter(r => (r.periodMonth || monthKey(r.date)) === mm);
-            labelP = labelMonth(mm);
-        }
+    } else {
+        if(bilanPeriod === 'year'){ data = rows.filter(r => (r.periodMonth || monthKey(r.date)).startsWith(year)); labelP = "Année " + year; } 
+        else { data = rows.filter(r => (r.periodMonth || monthKey(r.date)) === mm); labelP = labelMonth(mm); }
     }
-    
     if(scope==='agency') data = data.filter(r => r.agence === agence);
     if(scope==='commercial') data = data.filter(r => r.agence === agence && (r.commercial||'Autre') === commercial);
 
-    // TOTAL RDV PLACÉS (affiché en haut)
     const totalRDV = data.reduce((acc, r) => acc + r.rdv, 0);
-    doc.setFontSize(10);
-    doc.setTextColor(100);
+    doc.setFontSize(10); doc.setTextColor(100);
     doc.text(`Nombre de RDV : ${totalRDV}`, 150, 35);
-
     doc.setFontSize(18); doc.setTextColor(30,58,138); doc.setFont('helvetica','bold');
     doc.text("BILAN DE PRESTATION", 14, 45);
-    doc.setFontSize(12); doc.setFont('helvetica','normal');
-    doc.text(labelP, 14, 52);
+    doc.setFontSize(12); doc.setFont('helvetica','normal'); doc.text(labelP, 14, 52);
 
     let cols = ['Date', 'Agence', 'Comm.', 'RDV', 'Tarif'];
-    if(TVA.active) { cols.push('HT'); cols.push('TVA'); cols.push('TTC'); }
-    else { cols.push('Total'); }
+    if(CONFIG.tvaActive) { cols.push('HT', 'TVA', 'TTC'); } else { cols.push('Total TTC'); }
     cols.push('Note');
 
     let body = data.map(r => {
         const v = getLineVals(r);
         let row = [formatDate(r.periodDate), r.agence, r.commercial||'', r.rdv, fmt(r.tarif)];
-        if(TVA.active) { row.push(fmt(v.ht), fmt(v.tva), fmt(v.ttc)); }
-        else { row.push(fmt(v.ht)); }
-        
-        let note = "";
-        if(r.reporte) note = "REPORTÉ";
-        if(r.geste) note += ` (Geste ${r.gesteMontant}€)`;
-        row.push(note);
+        if(CONFIG.tvaActive) { 
+            if(v.applicable) row.push(fmt(v.ht), fmt(v.tva), fmt(v.ttc)); else row.push(fmt(v.ht), "-", fmt(v.ht));
+        } else { row.push(fmt(v.ht)); }
+        let note = ""; if(r.reporte) note = "REPORTÉ"; if(r.geste) note += ` (Geste ${r.gesteMontant}€)`; row.push(note);
         return row;
     });
 
-    doc.autoTable({
-        head: [cols], body: body, margin: { top: 60 },
-        theme: 'grid', styles: { fontSize: 9 },
-        didParseCell: (data) => {
-            if(data.column.index === cols.length-1 && data.cell.raw.includes('REPORTÉ')) 
-                data.cell.styles.textColor = [234, 88, 12];
-        }
-    });
+    doc.autoTable({ head: [cols], body: body, margin: { top: 60 }, theme: 'grid', styles: { fontSize: 9 } });
 
     let totalHT = data.reduce((acc,r)=> acc + r.netTotal, 0);
-    let totalTVA = TVA.active ? (totalHT * TVA.rate / 100) : 0;
+    let y = doc.lastAutoTable.finalY + 10; doc.setFontSize(12); doc.setTextColor(0);
     
-    let y = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(`Total HT : ${fmt(totalHT)} €`, 14, y);
-    if(TVA.active) {
-        doc.text(`TVA (${TVA.rate}%) : ${fmt(totalTVA)} €`, 80, y);
-        doc.setFont(undefined, 'bold');
-        doc.text(`Total TTC : ${fmt(totalHT + totalTVA)} €`, 150, y);
+    // Positionnement des totaux
+    if(CONFIG.tvaActive){
+        let totTva = data.reduce((acc,r)=> acc + getLineVals(r).tva, 0);
+        doc.text(`Total HT : ${fmt(totalHT)} €`, 14, y);
+        doc.text(`TVA : ${fmt(totTva)} €`, 80, y);
+        doc.setFont(undefined, 'bold'); doc.text(`Total TTC : ${fmt(totalHT + totTva)} €`, 150, y);
+    } else {
+        doc.setFont(undefined, 'bold'); doc.text(`Total TTC : ${fmt(totalHT)} €`, 14, y);
     }
-    
+
+    // AJOUT DE LA SIGNATURE EN BAS DU BILAN GLOBAL
+    if(CONFIG.signature){
+         try{
+             let sigY = y + 15; // Un peu en dessous des totaux
+             if(sigY > 250) { doc.addPage(); sigY = 20; }
+             doc.addImage(CONFIG.signature, 'PNG', 140, sigY, 50, 25);
+             doc.setFontSize(8); doc.setFont(undefined, 'normal');
+             doc.text("Cachet / Signature :", 140, sigY - 2);
+         }catch(e){} 
+    }
+
     doc.save(`Bilan_${scope}_${labelP}.pdf`);
 }
+function exportMonthPdfAll(){ const prev = bilanPeriod; bilanPeriod = 'month'; exportBilanPdf('global'); bilanPeriod = prev; }
 
-function exportMonthPdfAll(){
-    const prev = bilanPeriod;
-    bilanPeriod = 'month';
-    exportBilanPdf('global');
-    bilanPeriod = prev;
-}
-
-/* === PDF UNIQUE (CRAYON) === */
 function exportSingleRdvPdf(){
     const id = document.getElementById('editId').value;
-    const r = rows.find(x=>x.id===id);
-    if(!r) return;
-    
+    const r = rows.find(x=>x.id===id); if(!r) return;
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const v = getLineVals(r);
     
+    if(CONFIG.logo){ try{ doc.addImage(CONFIG.logo, 'JPEG', 14, 10, 30, 30); }catch(e){} }
+    doc.setFillColor(30, 58, 138); doc.rect(0, 0, 10, 297, 'F');
+    doc.setFontSize(22); doc.setTextColor(30,58,138); doc.setFont('helvetica','bold');
+    doc.text("BILAN JOURNALIER", 50, 25);
+    doc.setFontSize(10); doc.setTextColor(100); doc.setFont('helvetica','normal');
+    doc.text(`Date : ${formatDate(r.date)}`, 50, 32);
     doc.setFontSize(10); doc.setTextColor(50);
-    doc.text("Bonjour, suite à votre demande, ci-joint le récapitulatif pour cette mission.", 14, 20);
+    doc.text("Bonjour, suite à votre demande, ci-joint le récapitulatif pour cette mission.", 50, 45);
     
-    doc.setFontSize(18); doc.setTextColor(0); doc.setFont('helvetica','bold');
-    doc.text("BILAN JOURNALIER", 14, 40);
-    doc.setFontSize(12); doc.setFont('helvetica','normal');
-    doc.text(`Date : ${formatDate(r.date)}`, 14, 48);
+    const head = [['Date', 'Agence', 'Comm', 'RDV', 'Tarif', (v.applicable ? 'Total HT' : 'Total TTC')]];
+    const body = [[ formatDate(r.date), r.agence, r.commercial||'-', r.rdv, fmt(r.tarif)+' €', fmt(v.ht)+' €' ]];
+    doc.autoTable({ head: head, body: body, startY: 60, margin:{left:20}, theme: 'grid' });
     
-    const head = [['Date', 'Agence', 'Comm', 'RDV', 'Tarif', 'Total HT']];
-    const body = [[
-       formatDate(r.date), r.agence, r.commercial||'-', r.rdv, fmt(r.tarif)+' €', fmt(v.ht)+' €'
-    ]];
-    
-    doc.autoTable({ head: head, body: body, startY: 60, theme: 'grid' });
-    
+    if(CONFIG.signature){ try{ doc.addImage(CONFIG.signature, 'PNG', 20, doc.lastAutoTable.finalY+20, 50, 25); }catch(e){} }
     doc.save(`Bilan_Journalier_${r.agence}_${r.date}.pdf`);
 }
 
 /* ================= UTILS DASH & FILTERS ================= */
 function buildMonthOptions(id){
     const s=document.getElementById(id); s.innerHTML='';
-    let y=2025, m=9; 
-    const now=new Date(); const endY=now.getFullYear(), endM=now.getMonth()+2;
-    while(y<endY || (y===endY && m<=endM)){
-        s.add(new Option(`${MONTHS_FR[m-1]} ${y}`, `${y}-${pad(m)}`));
-        m++; if(m>12){m=1;y++}
-    }
+    let y=2025, m=9; const now=new Date(); const endY=now.getFullYear(), endM=now.getMonth()+2;
+    while(y<endY || (y===endY && m<=endM)){ s.add(new Option(labelMonth(`${y}-${pad(m)}`), `${y}-${pad(m)}`)); m++; if(m>12){m=1;y++} }
     s.value=monthKey(now);
 }
 function updateSelects(){
@@ -860,13 +858,15 @@ function updateSelects(){
 }
 
 function renderClientsTable(){
-    // Restauration affichage Répertoire
     const tbody = document.getElementById('tbodyClients');
     tbody.innerHTML = clientsRows.map(c=>`<tr>
-        <td>${c.agence}</td>
-        <td>${c.commerciaux?c.commerciaux.join(', '):''}</td>
+        <td>${c.agence} <div class="show-mobile" style="display:none;font-size:10px;color:#666">${c.commerciaux?c.commerciaux.join(', '):''}</div></td>
+        <td class="hide-mobile">${c.commerciaux?c.commerciaux.join(', '):''}</td>
         <td class="hide-mobile">${c.tarif||''}€</td>
-        <td><button class="btn btn-light" onclick="editClient('${c.id}')">✎</button></td>
+        <td class="text-right">
+            <button class="btn btn-light btn-circle-mob" onclick="editClient('${c.id}')"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-circle-mob" style="background:#fee2e2;color:#b91c1c;border-color:#fca5a5;margin-left:5px" onclick="deleteClient('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+        </td>
     </tr>`).join('');
 }
 function editClient(id){
@@ -875,6 +875,10 @@ function editClient(id){
     document.getElementById('clientCommerciaux').value=c.commerciaux?c.commerciaux.join(','):'';
     document.getElementById('clientTarif').value=c.tarif;
     document.getElementById('clientEditId').value=c.id;
+}
+async function deleteClient(id){
+    if(!confirm("Supprimer cette agence ?")) return;
+    await db.collection('clients').doc(id).delete();
 }
 document.getElementById('clientForm').onsubmit=(e)=>{
     e.preventDefault();
@@ -889,20 +893,13 @@ document.getElementById('clientForm').onsubmit=(e)=>{
     e.target.reset(); document.getElementById('clientEditId').value='';
 }
 
-/* ================= UTILS UI ================= */
-function switchTab(t){
+function switchTab(t){ 
     document.querySelectorAll('.section').forEach(s=>s.style.display='none');
     document.getElementById('section-'+t).style.display='block';
-    
-    // Gestion Active Class Onglets
     document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-    document.getElementById('tab'+(t.charAt(0).toUpperCase()+t.slice(1))).classList.add('active');
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('active');
 }
 function closeModal(id){ document.getElementById(id).style.display='none'; }
-
-document.getElementById('moisFiltre').addEventListener('change',renderTable);
-document.getElementById('filtreAgence').addEventListener('change',renderTable);
-document.getElementById('filtreCommercial').addEventListener('change',renderTable);
 function clearFilters(){ document.getElementById('filtreAgence').value=''; document.getElementById('filtreCommercial').value=''; document.getElementById('filtreJour').value=''; renderTable(); }
 async function deleteSelected(){
     if(!confirm('Supprimer ?'))return;
@@ -911,6 +908,10 @@ async function deleteSelected(){
     await batch.commit();
 }
 function toggleAll(src){ document.querySelectorAll('.chk').forEach(c=>c.checked=src.checked); }
+
+document.getElementById('moisFiltre').addEventListener('change',renderTable);
+document.getElementById('filtreAgence').addEventListener('change',renderTable);
+document.getElementById('filtreCommercial').addEventListener('change',renderTable);
 
 window.onload=checkAccess;
 async function checkAccess(){
