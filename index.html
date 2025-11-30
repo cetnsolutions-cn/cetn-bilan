@@ -11,6 +11,8 @@
   
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -103,22 +105,16 @@
       .clientSel, .commWrap{ width:100%; }
       .monthbar select { flex:1; }
       
-      /* Style Tableau Mobile "Comme la photo" */
       .hide-mobile { display:none !important; }
       .show-mobile { display:table-cell !important; }
       
       table { table-layout: fixed; }
       th, td { padding: 10px 4px; font-size: 11px; white-space: normal; word-wrap: break-word; }
       
-      /* Colonne Date */
       th:nth-child(2), td:nth-child(2) { width: 65px; } 
-      /* Colonne Agence */
       th:nth-child(3), td:nth-child(3) { width: auto; font-weight:700; color:#374151; line-height:1.2; }
-      /* Colonne RDV */
       th:nth-child(4), td:nth-child(4) { width: 30px; text-align:center; }
-      /* Colonne TTC/Etat */
       th:nth-child(5), td:nth-child(5) { width: 60px; text-align:right; font-weight:800; }
-      /* Colonne Action */
       th:last-child, td:last-child { width: 40px; text-align:center; }
       
       .btn-circle-mob { width:28px; height:28px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; background:#fff; color:#64748b; }
@@ -128,11 +124,20 @@
 <body>
 
   <div id="lockScreen" style="position:fixed; inset:0; background:#111827; display:flex; align-items:center; justify-content:center; z-index:9999;">
-    <div style="background:#fff; padding:30px; border-radius:16px; width:300px; text-align:center;">
-      <h2 style="margin:0 0 20px 0; color:#1e40af;">Connexion</h2>
-      <input type="password" id="pwLogin" placeholder="Mot de passe" style="width:100%; margin-bottom:10px;">
-      <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="tryLogin()">Entrer</button>
-      <div id="lockErr" style="color:red; margin-top:10px; font-size:12px;"></div>
+    <div style="background:#fff; padding:30px; border-radius:16px; width:300px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+      <div style="width:60px; height:60px; background:#e0e7ff; color:#3730a3; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px auto; font-size:24px;">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2 style="margin:0 0 5px 0; color:#1e40af; font-weight:800;">Espace Pro</h2>
+      <p style="margin:0 0 20px 0; font-size:12px; color:#6b7280;">Veuillez vous identifier</p>
+      
+      <form onsubmit="event.preventDefault(); realLogin();">
+        <input type="email" id="emailLogin" placeholder="Email" style="width:100%; margin-bottom:10px; padding:12px;">
+        <input type="password" id="pwLogin" placeholder="Mot de passe" style="width:100%; margin-bottom:15px; padding:12px;">
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Se connecter</button>
+      </form>
+      
+      <div id="lockErr" style="color:#ef4444; margin-top:15px; font-size:12px; font-weight:bold;"></div>
     </div>
   </div>
 
@@ -144,8 +149,8 @@
         <button onclick="openSettingsModal()" class="btn btn-settings" style="padding:6px 10px; border-radius:99px" title="Réglages">
           ⚙️
         </button>
-        <button onclick="changePassword()" class="btn btn-light" style="padding:6px 10px; border-radius:99px" title="Changer mot de passe">
-          🔐
+        <button onclick="logout()" class="btn btn-light" style="padding:6px 10px; border-radius:99px; background:#fef2f2; border-color:#fecaca; color:#b91c1c;" title="Déconnexion">
+          <i class="fa-solid fa-power-off"></i>
         </button>
       </div>
     </div>
@@ -336,10 +341,20 @@
   </div>
 
 <script>
-/* ================= CONFIG ================= */
-const firebaseConfig={apiKey:"AIzaSyC99x3m-J0M14YWL_PhD3-X8GyZTXwkfes",authDomain:"bilan-rdv-pro.firebaseapp.com",projectId:"bilan-rdv-pro",storageBucket:"bilan-rdv-pro.appspot.com",messagingSenderId:"453220474263",appId:"1:453220474263:web:e1226ff79656af1eee78d2"};
+/* ================= CONFIG (MISE A JOUR AVEC TES CLES) ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyC99x3m-J0Ml4YWL_PhD3-X8GyZTXwkfes",
+  authDomain: "bilan-rdv-pro.firebaseapp.com",
+  projectId: "bilan-rdv-pro",
+  storageBucket: "bilan-rdv-pro.firebasestorage.app",
+  messagingSenderId: "453220474263",
+  appId: "1:453220474263:web:e1226ff79656af1eee78d2",
+  measurementId: "G-4MPLFMWE2M"
+};
+
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
+const auth=firebase.auth();
 
 const MONTHS_FR=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 const pad=n=>String(n).padStart(2,'0');
@@ -358,22 +373,39 @@ let currentPage = 1;
 const ITEMS_PER_PAGE = 15;
 
 /* ================= AUTH ================= */
-async function tryLogin(){
-    const pw=document.getElementById('pwLogin').value;
-    const h=await sha256(pw);
-    const snap=await db.collection('config').doc('access').get();
-    if(snap.exists && snap.data().adminHash===h){
+// Ecoute l'état de la connexion
+auth.onAuthStateChanged(user => {
+    if(user){
         document.getElementById('lockScreen').style.display='none';
         document.getElementById('app').style.display='block';
         loadSettings();
         initListeners();
-    } else { document.getElementById('lockErr').textContent="Erreur mot de passe"; }
+    } else {
+        document.getElementById('lockScreen').style.display='flex';
+        document.getElementById('app').style.display='none';
+    }
+});
+
+function realLogin(){
+    const email = document.getElementById('emailLogin').value;
+    const pass = document.getElementById('pwLogin').value;
+    const err = document.getElementById('lockErr');
+    err.textContent = "Connexion...";
+    
+    auth.signInWithEmailAndPassword(email, pass)
+    .catch(error => {
+        let msg = "Erreur de connexion";
+        if(error.code === 'auth/invalid-email') msg = "Email invalide";
+        if(error.code === 'auth/user-not-found') msg = "Utilisateur inconnu";
+        if(error.code === 'auth/wrong-password') msg = "Mot de passe incorrect";
+        err.textContent = msg;
+    });
 }
-document.getElementById('pwLogin').addEventListener('keyup', e=>{ if(e.key==='Enter') tryLogin(); });
-async function sha256(m){const b=new TextEncoder().encode(m);const h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');}
-async function changePassword(){
-    const p=prompt("Nouveau mot de passe ?"); if(!p)return;
-    const h=await sha256(p); await db.collection('config').doc('access').set({adminHash:h}); alert("Mot de passe modifié !");
+
+function logout(){
+    if(confirm("Se déconnecter ?")){
+        auth.signOut();
+    }
 }
 
 /* ================= SETTINGS ================= */
@@ -830,7 +862,7 @@ function exportSingleRdvPdf(){
     doc.setFontSize(10); doc.setTextColor(100); doc.setFont('helvetica','normal');
     doc.text(`Date : ${formatDate(r.date)}`, 50, 32);
     doc.setFontSize(10); doc.setTextColor(50);
-    doc.text("Bonjour, suite à votre demande, ci-joint le récapitulatif pour la journée demandée.", 50, 45);
+    doc.text("Bonjour, suite à votre demande, ci-joint le récapitulatif pour cette mission.", 50, 45);
     
     const head = [['Date', 'Agence', 'Comm', 'RDV', 'Tarif', (v.applicable ? 'Total HT' : 'Total TTC')]];
     const body = [[ formatDate(r.date), r.agence, r.commercial||'-', r.rdv, fmt(r.tarif)+' €', fmt(v.ht)+' €' ]];
@@ -913,10 +945,7 @@ document.getElementById('moisFiltre').addEventListener('change',renderTable);
 document.getElementById('filtreAgence').addEventListener('change',renderTable);
 document.getElementById('filtreCommercial').addEventListener('change',renderTable);
 
-window.onload=checkAccess;
-async function checkAccess(){
-    document.getElementById('lockScreen').style.display='flex';
-}
+// Le "checkAccess" est maintenant géré par auth.onAuthStateChanged
 </script>
 </body>
 </html>
