@@ -830,7 +830,7 @@ function exportSingleRdvPdf(){
     doc.setFontSize(10); doc.setTextColor(100); doc.setFont('helvetica','normal');
     doc.text(`Date : ${formatDate(r.date)}`, 50, 32);
     doc.setFontSize(10); doc.setTextColor(50);
-    doc.text("Bonjour, suite à votre demande, ci-joint le récapitulatif pour cette mission.", 50, 45);
+    doc.text("Bonjour, suite à votre demande, ci-joint le récapitulatif pour la journée demandée.", 50, 45);
     
     const head = [['Date', 'Agence', 'Comm', 'RDV', 'Tarif', (v.applicable ? 'Total HT' : 'Total TTC')]];
     const body = [[ formatDate(r.date), r.agence, r.commercial||'-', r.rdv, fmt(r.tarif)+' €', fmt(v.ht)+' €' ]];
