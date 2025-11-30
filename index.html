@@ -3,9 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0" />
-  <title>C&N Solutions – Gestion</title>
-  <link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1977f2">
+  <meta name="format-detection" content="telephone=no">
+  <title>C&N Solutions</title>
+  
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1063/1063376.png">
+  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/1063/1063376.png">
 
+  <link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
   
@@ -47,12 +54,12 @@
     .card-tva .card-label { color:#92400e; }
     .card-tva .card-value { color:#b45309; }
 
-    /* Boutons */
-    .btns { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:15px; position:sticky; top:5px; z-index:10; background:rgba(255,255,255,0.9); padding:5px 0; }
+    /* Boutons (NON STICKY) */
+    .btns { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:15px; padding:5px 0; position:relative; }
     .btn { padding:10px 14px; border-radius:8px; font-weight:700; border:none; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; gap:6px; }
     .btn-primary { background:#1977f2; color:#fff; }
     .btn-light { background:#f1f6ff; color:#1b47b7; border:1px solid #cfe0ff; }
-    .btn-tva { background:#fffbeb; color:#92400e; border:1px solid #fcd34d; }
+    .btn-success { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
     .btn-settings { background:#f3f4f6; color:#374151; border:1px solid #d1d5db; }
 
     /* Formulaire */
@@ -77,6 +84,19 @@
     
     .pill-report { background:#fff7ed; color:#ea580c; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; border:1px solid #fed7aa; display:inline-block; margin-top:2px; }
     .geste-chip { background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:800; border:1px solid #bbf7d0; display:inline-block; }
+
+    /* Barres d'objectif */
+    .obj-bar-bg { width:100%; height:6px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin-top:3px; }
+    .obj-bar-fill { height:100%; background:#3b82f6; transition:width 0.3s; }
+    .obj-text { font-size:10px; color:#64748b; margin-top:2px; display:flex; justify-content:space-between; }
+    .obj-alert { color:#ea580c; font-weight:700; }
+    .obj-success { color:#16a34a; font-weight:700; }
+    
+    /* Comm List EDITABLE (Optimisé Mobile) */
+    .comm-row-edit { display:flex; gap:5px; margin-bottom:5px; align-items:center; }
+    .comm-row-edit input[type="text"] { flex:1; min-width:0; padding:8px; } 
+    .comm-row-edit input[type="number"] { width:50px; padding:8px; text-align:center; }
+    .comm-row-edit button { padding:8px; width:35px; display:flex; justify-content:center; align-items:center; }
 
     /* Pagination */
     .pager { display:flex; justify-content:flex-end; gap:5px; margin-top:10px; align-items:center; }
@@ -113,8 +133,11 @@
       
       th:nth-child(2), td:nth-child(2) { width: 65px; } 
       th:nth-child(3), td:nth-child(3) { width: auto; font-weight:700; color:#374151; line-height:1.2; }
+      /* Colonne RDV */
       th:nth-child(4), td:nth-child(4) { width: 30px; text-align:center; }
+      /* Colonne Total */
       th:nth-child(5), td:nth-child(5) { width: 60px; text-align:right; font-weight:800; }
+      /* Actions */
       th:last-child, td:last-child { width: 40px; text-align:center; }
       
       .btn-circle-mob { width:28px; height:28px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; background:#fff; color:#64748b; }
@@ -166,10 +189,13 @@
 
       <div class="btns">
         <button class="btn btn-primary" onclick="showBilanCommercial()">
-          <i class="fa-solid fa-chart-pie"></i> Bilan Commercial
+          <i class="fa-solid fa-chart-pie"></i> Bilan
         </button>
         <button class="btn btn-light" onclick="exportMonthPdfAll()">
-          <i class="fa-solid fa-file-pdf"></i> PDF Global
+          <i class="fa-solid fa-file-pdf"></i> PDF
+        </button>
+        <button class="btn btn-success" onclick="exportComptaExcel()">
+          <i class="fa-solid fa-file-excel"></i> Excel
         </button>
       </div>
 
@@ -206,13 +232,30 @@
       </div>
       <div id="pager" class="pager"></div>
     </div>
-    <div id="section-clients" style="display:none">
+    <div id="section-clients" class="section" style="display:none">
       <div class="form-wrap">
-        <form id="clientForm" class="form-row">
-          <input type="text" id="clientAgence" placeholder="Nom Agence" style="flex:2">
-          <input type="text" id="clientCommerciaux" placeholder="Commerciaux (ex: Jean, Paul)" style="flex:2">
-          <input type="number" id="clientTarif" placeholder="Tarif (€)" style="width:100px">
-          <button type="submit" class="btn btn-primary">Sauvegarder</button>
+        <form id="clientForm">
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+             <input type="text" id="clientAgence" placeholder="Nom Agence" style="flex:100%; min-width:200px;">
+             
+             <div style="flex:1; min-width:90px;">
+                <label style="font-size:10px;font-weight:bold;color:#666">Obj. Global</label>
+                <input type="number" id="clientObjectif" placeholder="Nb" style="width:100%">
+             </div>
+             
+             <div style="flex:1; min-width:90px;">
+                <label style="font-size:10px;font-weight:bold;color:#666">Tarif Réf (€)</label>
+                <input type="number" id="clientTarif" placeholder="€" style="width:100%">
+             </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-bottom:10px;">
+             <label style="font-size:11px; font-weight:700; color:#1e3a8a; margin-bottom:5px; display:block;">Liste des Commerciaux & Objectifs</label>
+             <div id="commListPreview"></div>
+             <button type="button" class="btn btn-light" style="width:100%; margin-top:5px; justify-content:center;" onclick="addBlankComm()">+ Ajouter un commercial</button>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%">Sauvegarder l'Agence</button>
           <input type="hidden" id="clientEditId">
         </form>
       </div>
@@ -223,6 +266,7 @@
                   <th>Agence</th>
                   <th class="hide-mobile">Commerciaux</th>
                   <th class="hide-mobile">Tarif</th>
+                  <th>Obj. Global</th>
                   <th class="text-right">Actions</th>
               </tr>
           </thead>
@@ -329,7 +373,7 @@
   <div id="bilanModal" class="modal-overlay">
     <div class="modal-box" style="max-width:800px;">
       <div class="modal-head">
-        <div class="modal-title">Bilans Commerciaux</div>
+        <div class="modal-title">Bilans & Objectifs</div>
         <button onclick="closeModal('bilanModal')" style="background:none; border:none; font-size:24px;">×</button>
       </div>
       <div style="display:flex; gap:10px; margin-bottom:15px;">
@@ -341,7 +385,7 @@
   </div>
 
 <script>
-/* ================= CONFIG (MISE A JOUR AVEC TES CLES) ================= */
+/* ================= CONFIG ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyC99x3m-J0Ml4YWL_PhD3-X8GyZTXwkfes",
   authDomain: "bilan-rdv-pro.firebaseapp.com",
@@ -373,7 +417,6 @@ let currentPage = 1;
 const ITEMS_PER_PAGE = 15;
 
 /* ================= AUTH ================= */
-// Ecoute l'état de la connexion
 auth.onAuthStateChanged(user => {
     if(user){
         document.getElementById('lockScreen').style.display='none';
@@ -385,13 +428,11 @@ auth.onAuthStateChanged(user => {
         document.getElementById('app').style.display='none';
     }
 });
-
 function realLogin(){
     const email = document.getElementById('emailLogin').value;
     const pass = document.getElementById('pwLogin').value;
     const err = document.getElementById('lockErr');
     err.textContent = "Connexion...";
-    
     auth.signInWithEmailAndPassword(email, pass)
     .catch(error => {
         let msg = "Erreur de connexion";
@@ -401,19 +442,11 @@ function realLogin(){
         err.textContent = msg;
     });
 }
-
-function logout(){
-    if(confirm("Se déconnecter ?")){
-        auth.signOut();
-    }
-}
+function logout(){ if(confirm("Se déconnecter ?")){ auth.signOut(); } }
 
 /* ================= SETTINGS ================= */
 async function loadSettings(){
-    try{
-        const d=await db.collection('config').doc('settings').get();
-        if(d.exists) CONFIG={...CONFIG, ...d.data()};
-    }catch(e){}
+    try{ const d=await db.collection('config').doc('settings').get(); if(d.exists) CONFIG={...CONFIG, ...d.data()}; }catch(e){}
     renderTable();
 }
 function openSettingsModal(){
@@ -427,34 +460,14 @@ function openSettingsModal(){
     if(CONFIG.signature) { document.getElementById('sigPreview').src=CONFIG.signature; document.getElementById('sigPreview').style.display='block'; }
     document.getElementById('settingsModal').style.display='flex';
 }
-function toggleTvaBox(){
-    const chk = document.getElementById('tvaActive'); chk.checked = !chk.checked; refreshTvaBoxUI();
-}
+function toggleTvaBox(){ const chk = document.getElementById('tvaActive'); chk.checked = !chk.checked; refreshTvaBoxUI(); }
 function refreshTvaBoxUI(){
-    const chk = document.getElementById('tvaActive');
-    const box = document.getElementById('tvaOptionBox');
-    const icon = document.getElementById('tvaCheckIcon');
-    const fields = document.getElementById('tvaFields');
-    if(chk.checked){
-        box.classList.add('checked'); icon.className = "fa-solid fa-check-circle"; fields.style.display = 'block';
-    } else {
-        box.classList.remove('checked'); icon.className = "fa-regular fa-circle"; fields.style.display = 'none';
-    }
+    const chk = document.getElementById('tvaActive'); const box = document.getElementById('tvaOptionBox'); const icon = document.getElementById('tvaCheckIcon'); const fields = document.getElementById('tvaFields');
+    if(chk.checked){ box.classList.add('checked'); icon.className = "fa-solid fa-check-circle"; fields.style.display = 'block'; } 
+    else { box.classList.remove('checked'); icon.className = "fa-regular fa-circle"; fields.style.display = 'none'; }
 }
-function handleLogo(inp){
-    if(inp.files[0]){
-        const r=new FileReader();
-        r.onload=e=>{ document.getElementById('logoPreview').src=e.target.result; document.getElementById('logoPreview').style.display='block'; document.getElementById('logoBase64').value=e.target.result; };
-        r.readAsDataURL(inp.files[0]);
-    }
-}
-function handleSignature(inp){
-    if(inp.files[0]){
-        const r=new FileReader();
-        r.onload=e=>{ document.getElementById('sigPreview').src=e.target.result; document.getElementById('sigPreview').style.display='block'; document.getElementById('sigBase64').value=e.target.result; };
-        r.readAsDataURL(inp.files[0]);
-    }
-}
+function handleLogo(inp){ if(inp.files[0]){ const r=new FileReader(); r.onload=e=>{ document.getElementById('logoPreview').src=e.target.result; document.getElementById('logoPreview').style.display='block'; document.getElementById('logoBase64').value=e.target.result; }; r.readAsDataURL(inp.files[0]); } }
+function handleSignature(inp){ if(inp.files[0]){ const r=new FileReader(); r.onload=e=>{ document.getElementById('sigPreview').src=e.target.result; document.getElementById('sigPreview').style.display='block'; document.getElementById('sigBase64').value=e.target.result; }; r.readAsDataURL(inp.files[0]); } }
 async function saveSettings(){
     CONFIG.tvaActive = document.getElementById('tvaActive').checked;
     CONFIG.tvaRate = Number(document.getElementById('tvaRate').value);
@@ -484,8 +497,7 @@ function initListeners(){
 
 /* ================= SAISIE ================= */
 function toggleCreateReport(){
-    const btn = document.getElementById('btnCreateReport');
-    const inp = document.getElementById('chkReportVal');
+    const btn = document.getElementById('btnCreateReport'); const inp = document.getElementById('chkReportVal');
     if(inp.value === "false"){ inp.value = "true"; btn.className = "btn-report-on"; btn.textContent = "OUI (Report M+1)"; } 
     else { inp.value = "false"; btn.className = "btn-report-off"; btn.textContent = "NON (Mois en cours)"; }
 }
@@ -506,10 +518,15 @@ function onClientChange(sel){
     wrap.innerHTML='';
     if(cli){
         if(cli.tarif) tarif.value=cli.tarif;
-        if(cli.commerciaux && cli.commerciaux.length>0){
-            addCommLine(wrap,cli.commerciaux);
+        
+        let comms = [];
+        if(cli.commerciauxDetails) comms = cli.commerciauxDetails.map(c => c.name);
+        else if(cli.commerciaux) comms = cli.commerciaux;
+
+        if(comms.length>0){
+            addCommLine(wrap, comms);
             const btn=document.createElement('button'); btn.type='button'; btn.textContent='+'; btn.style.padding='2px 6px';
-            btn.onclick=()=>addCommLine(wrap,cli.commerciaux);
+            btn.onclick=()=>addCommLine(wrap, comms);
             wrap.appendChild(btn);
         } else { wrap.innerHTML=`<input type="number" class="rdvVal" value="1" style="width:50px" placeholder="Nb">`; }
     }
@@ -521,15 +538,12 @@ function addCommLine(wrap,list){
 }
 document.getElementById('rdvForm').onsubmit=async(e)=>{
     e.preventDefault();
-    const date=document.getElementById('dateSelect').value;
-    if(!date)return alert("Date requise");
+    const date=document.getElementById('dateSelect').value; if(!date)return alert("Date requise");
     const isReport = document.getElementById('chkReportVal').value === "true";
     const targetMonth=isReport?getNextMonthKey(date):monthKey(date);
     const batch=db.batch();
     document.querySelectorAll('.rdv-block').forEach(b=>{
-        const cliId=b.querySelector('.clientSel').value;
-        const cli=clientsRows.find(c=>c.id===cliId);
-        if(!cli) return;
+        const cliId=b.querySelector('.clientSel').value; const cli=clientsRows.find(c=>c.id===cliId); if(!cli) return;
         const tarif=Number(b.querySelector('.tarifIn').value);
         const comms=b.querySelectorAll('.commSel');
         if(comms.length>0){
@@ -551,25 +565,12 @@ document.getElementById('rdvForm').onsubmit=async(e)=>{
 }
 function addBatch(batch,cli,comm,rdv,tarif,date,targetMonth,isReport){
     const ref=db.collection('rdv_ajouts').doc();
-    batch.set(ref,{
-        clientId:cli.id, agence:cli.agence, commercial:comm, rdv, tarif,
-        total:rdv*tarif, date, periodDate:date, periodMonth:targetMonth,
-        reporte:isReport, geste:false, createdAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
+    batch.set(ref,{ clientId:cli.id, agence:cli.agence, commercial:comm, rdv, tarif, total:rdv*tarif, date, periodDate:date, periodMonth:targetMonth, reporte:isReport, geste:false, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
 }
 
 /* ================= CALCULS TVA ================= */
-function isTvaApplicable(rDate){
-    if(!CONFIG.tvaActive) return false;
-    if(!CONFIG.tvaStart) return false;
-    return rDate >= CONFIG.tvaStart;
-}
-function getLineVals(r){
-    const applicable = isTvaApplicable(r.date);
-    const ht = r.netTotal; 
-    const tva = applicable ? (ht * CONFIG.tvaRate / 100) : 0;
-    return { ht, tva, ttc: ht + tva, applicable };
-}
+function isTvaApplicable(rDate){ if(!CONFIG.tvaActive) return false; if(!CONFIG.tvaStart) return false; return rDate >= CONFIG.tvaStart; }
+function getLineVals(r){ const applicable = isTvaApplicable(r.date); const ht = r.netTotal; const tva = applicable ? (ht * CONFIG.tvaRate / 100) : 0; return { ht, tva, ttc: ht + tva, applicable }; }
 
 /* ================= TABLE & FILTER ================= */
 function getFilteredData(ignoreFilters=false){
@@ -583,38 +584,16 @@ function getFilteredData(ignoreFilters=false){
         const activityM = monthKey(r.periodDate || r.date);
         return (billingM === m) || (activityM === m && r.reporte);
     });
-    if(!ignoreFilters){
-        if(ag) data=data.filter(r=>r.agence===ag);
-        if(co) data=data.filter(r=>r.commercial===co);
-    }
+    if(!ignoreFilters){ if(ag) data=data.filter(r=>r.agence===ag); if(co) data=data.filter(r=>r.commercial===co); }
     return data.sort((a,b)=>a.date.localeCompare(b.date));
 }
-
 function changePage(delta) { currentPage += delta; renderTable(); }
-
 function renderTable(){
-    const tbody=document.getElementById('tbody');
-    const thead=document.getElementById('tableHead');
-    tbody.innerHTML='';
-    
-    // HEADERS ADAPTÉS MOBILE
-    let h=`<tr>
-             <th style="width:30px" class="hide-mobile"><input type="checkbox" onclick="toggleAll(this)"></th>
-             <th>Date</th>
-             <th>Agence</th>
-             <th class="hide-mobile">Comm.</th>
-             <th class="text-right">RDV</th>
-             <th class="text-right hide-mobile">Tarif</th>`;
-    
-    if(CONFIG.tvaActive) {
-        h+=`<th class="text-right hide-mobile">HT</th><th class="text-right hide-mobile">TVA</th>`;
-    }
-    
-    // Si TVA, on montre TTC, sinon on montre le total Net (HT)
-    // Pour que ça tienne sur mobile, on appellera la colonne "TTC" ou "Total"
-    h+=`<th class="text-right">Total</th>`; 
-    h+=`<th class="text-right">Actions</th></tr>`;
-    
+    const tbody=document.getElementById('tbody'); const thead=document.getElementById('tableHead'); tbody.innerHTML='';
+    let h=`<tr><th style="width:30px" class="hide-mobile"><input type="checkbox" onclick="toggleAll(this)"></th>
+             <th>Date</th><th>Agence</th><th class="text-right">RDV</th><th class="text-right hide-mobile">Tarif</th>`;
+    if(CONFIG.tvaActive) h+=`<th class="text-right hide-mobile">HT</th><th class="text-right hide-mobile">TVA</th>`;
+    h+=`<th class="text-right">Total</th><th class="text-right">Actions</th></tr>`;
     thead.innerHTML=h;
     
     const data=getFilteredData();
@@ -623,7 +602,6 @@ function renderTable(){
     const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
     if(currentPage < 1) currentPage = 1;
     if(currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-    
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const pageData = data.slice(start, start + ITEMS_PER_PAGE);
     
@@ -633,53 +611,34 @@ function renderTable(){
         const isFutureBill = (r.periodMonth > document.getElementById('moisFiltre').value);
         if(isFutureBill) { tr.style.opacity = "0.7"; tr.style.background = "#f8fafc"; }
 
-        // CELLULES ADAPTÉES MOBILE
         let html=`<td class="hide-mobile"><input type="checkbox" class="chk" data-id="${r.id}"></td>
                   <td>${formatDate(r.periodDate||r.date)}</td>
-                  <td>${r.agence} <div class="hide-mobile" style="font-size:10px;font-weight:normal;color:#666">${r.commercial||''}</div></td>
-                  <td class="hide-mobile">${r.commercial||''}</td>
+                  <td>
+                    <div style="font-weight:700; line-height:1.2">${r.agence}</div>
+                    ${r.commercial ? `<div style="font-size:11px; color:#666; margin-top:2px"><i class="fa-solid fa-user" style="font-size:9px"></i> ${r.commercial}</div>` : ''}
+                  </td>
                   <td class="text-right"><b>${r.rdv}</b></td>
                   <td class="text-right hide-mobile">${fmt(r.tarif)}</td>`;
-        
-        if(CONFIG.tvaActive){
-            html+=`<td class="text-right hide-mobile">${fmt(v.ht)}€</td><td class="text-right hide-mobile" style="color:#64748b">${fmt(v.tva)}€</td>`;
-        }
-        
-        // Colonne Total / Etat
+        if(CONFIG.tvaActive) html+=`<td class="text-right hide-mobile">${fmt(v.ht)}€</td><td class="text-right hide-mobile" style="color:#64748b">${fmt(v.tva)}€</td>`;
         let displayTotal = CONFIG.tvaActive ? v.ttc : v.ht;
-        
         let status = "";
         if(r.reporte || isFutureBill) status+=`<div class="pill-report">REPORTÉ</div>`;
         if(r.geste) status+=`<div class="geste-chip">-${r.gesteMontant}€</div>`;
 
-        html+=`<td class="text-right">
-                  <div>${fmt(displayTotal)}€</div>
-                  ${status}
-               </td>
-               <td class="text-right">
-                 <button class="btn btn-light btn-circle-mob" onclick="openEditModal('${r.id}')"><i class="fa-solid fa-pen"></i></button>
-               </td>`;
-        tr.innerHTML=html;
-        tbody.appendChild(tr);
+        html+=`<td class="text-right"><div>${fmt(displayTotal)}€</div>${status}</td>
+               <td class="text-right"><button class="btn btn-light btn-circle-mob" onclick="openEditModal('${r.id}')"><i class="fa-solid fa-pen"></i></button></td>`;
+        tr.innerHTML=html; tbody.appendChild(tr);
     });
-    
-    document.getElementById('pager').innerHTML=`
-        <button onclick="changePage(-1)" ${currentPage===1?'disabled':''}>Préc.</button> 
-        <span>Page ${currentPage} / ${totalPages||1}</span> 
-        <button onclick="changePage(1)" ${currentPage>=totalPages?'disabled':''}>Suiv.</button>
-    `;
+    document.getElementById('pager').innerHTML=`<button onclick="changePage(-1)" ${currentPage===1?'disabled':''}>Préc.</button><span>Page ${currentPage} / ${totalPages||1}</span><button onclick="changePage(1)" ${currentPage>=totalPages?'disabled':''}>Suiv.</button>`;
     updateSelects();
 }
 
 function renderDashboard(viewData){
-    const m = document.getElementById('moisFiltre').value;
-    const jour = document.getElementById('filtreJour').value;
+    const m = document.getElementById('moisFiltre').value; const jour = document.getElementById('filtreJour').value;
     let rdv=0, ht=0, tva=0, ttc=0;
     viewData.forEach(r=>{
         const billingM = r.periodMonth || monthKey(r.date);
-        if(jour || billingM === m) {
-            rdv+=r.rdv; const v=getLineVals(r); ht+=v.ht; tva+=v.tva; ttc+=v.ttc;
-        }
+        if(jour || billingM === m) { rdv+=r.rdv; const v=getLineVals(r); ht+=v.ht; tva+=v.tva; ttc+=v.ttc; }
     });
     let h=`<div class="card"><div class="card-label">CA ${CONFIG.tvaActive?'HT':''}</div><div class="card-value">${fmt(ht)}€</div><div class="card-sub">${rdv} RDV</div></div>`;
     if(CONFIG.tvaActive){
@@ -689,107 +648,133 @@ function renderDashboard(viewData){
     document.getElementById('dashboard').innerHTML=h;
 }
 
+/* ================= EXPORT EXCEL ================= */
+function exportComptaExcel(){
+    const data = getFilteredData();
+    if(data.length === 0) return alert("Rien à exporter pour cette période");
+    const rowsExcel = data.map(r => {
+        const v = getLineVals(r);
+        return { "Date": r.periodDate, "Agence": r.agence, "Commercial": r.commercial || "", "Nb RDV": r.rdv, "Tarif Unit": r.tarif, "Total HT": v.ht, "TVA": v.tva, "Total TTC": CONFIG.tvaActive ? v.ttc : v.ht, "Reporté": r.reporte ? "OUI" : "NON", "Geste Co.": r.geste ? r.gesteMontant : 0 };
+    });
+    const ws = XLSX.utils.json_to_sheet(rowsExcel); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Facturation");
+    const m = document.getElementById('moisFiltre').value; XLSX.writeFile(wb, `Export_Compta_${m}.xlsx`);
+}
+
 /* ================= EDIT MODAL ================= */
 function openEditModal(id){
     const r=rows.find(x=>x.id===id);
-    document.getElementById('editId').value=id;
-    document.getElementById('editDate').value=r.date;
-    document.getElementById('editAgence').value=r.agence;
+    document.getElementById('editId').value=id; document.getElementById('editDate').value=r.date; document.getElementById('editAgence').value=r.agence;
     const cli=clientsRows.find(c=>c.id===r.clientId);
-    const s=document.getElementById('editComm');
-    s.innerHTML='<option value="">-</option>'+(cli?.commerciaux||[]).map(x=>`<option ${x===r.commercial?'selected':''}>${x}</option>`).join('');
-    document.getElementById('editRdv').value=r.rdv;
-    document.getElementById('editTarif').value=r.tarif;
-    const btn=document.getElementById('btnEditReport');
-    const val=document.getElementById('editReportVal');
-    val.value = r.reporte ? 'true' : 'false';
-    btn.className = r.reporte ? 'btn-report-on' : 'btn-report-off';
-    btn.textContent = r.reporte ? 'OUI (Report M+1)' : 'NON (Mois en cours)';
+    
+    let commList = [];
+    if(cli?.commerciauxDetails) commList = cli.commerciauxDetails.map(c=>c.name);
+    else if(cli?.commerciaux) commList = cli.commerciaux;
+
+    const s=document.getElementById('editComm'); s.innerHTML='<option value="">-</option>'+commList.map(x=>`<option ${x===r.commercial?'selected':''}>${x}</option>`).join('');
+    document.getElementById('editRdv').value=r.rdv; document.getElementById('editTarif').value=r.tarif;
+    const btn=document.getElementById('btnEditReport'); const val=document.getElementById('editReportVal');
+    val.value = r.reporte ? 'true' : 'false'; btn.className = r.reporte ? 'btn-report-on' : 'btn-report-off'; btn.textContent = r.reporte ? 'OUI (Report M+1)' : 'NON (Mois en cours)';
     document.getElementById('editModal').style.display='flex';
 }
 function toggleEditReport(){
-    const btn=document.getElementById('btnEditReport');
-    const val=document.getElementById('editReportVal');
-    if(val.value==='false'){
-        val.value='true'; btn.className='btn-report-on'; btn.textContent='OUI (Report M+1)';
-    } else {
-        val.value='false'; btn.className='btn-report-off'; btn.textContent='NON (Mois en cours)';
-    }
+    const btn=document.getElementById('btnEditReport'); const val=document.getElementById('editReportVal');
+    if(val.value==='false'){ val.value='true'; btn.className='btn-report-on'; btn.textContent='OUI (Report M+1)'; } 
+    else { val.value='false'; btn.className='btn-report-off'; btn.textContent='NON (Mois en cours)'; }
 }
 async function saveEdit(){
-    const id=document.getElementById('editId').value;
-    const date=document.getElementById('editDate').value;
-    const comm=document.getElementById('editComm').value;
-    const rdv=Number(document.getElementById('editRdv').value);
-    const tarif=Number(document.getElementById('editTarif').value);
-    const isReport=document.getElementById('editReportVal').value==='true';
+    const id=document.getElementById('editId').value; const date=document.getElementById('editDate').value;
+    const comm=document.getElementById('editComm').value; const rdv=Number(document.getElementById('editRdv').value);
+    const tarif=Number(document.getElementById('editTarif').value); const isReport=document.getElementById('editReportVal').value==='true';
     const tm=isReport?getNextMonthKey(date):monthKey(date);
-    await db.collection('rdv_ajouts').doc(id).update({
-        date, periodDate:date, periodMonth:tm, commercial:comm, rdv, tarif, total:rdv*tarif, reporte:isReport
-    });
+    await db.collection('rdv_ajouts').doc(id).update({ date, periodDate:date, periodMonth:tm, commercial:comm, rdv, tarif, total:rdv*tarif, reporte:isReport });
     closeModal('editModal');
 }
 
-/* ================= BILANS & PDF ================= */
-function setBilanPeriod(p){
-    bilanPeriod = p;
-    document.getElementById('btnBilanMonth').className = (p==='month' ? 'btn btn-primary' : 'btn btn-light');
-    document.getElementById('btnBilanYear').className = (p==='year' ? 'btn btn-primary' : 'btn btn-light');
-    showBilanCommercial();
-}
+/* ================= BILANS & PDF & OBJECTIFS ================= */
+function setBilanPeriod(p){ bilanPeriod = p; document.getElementById('btnBilanMonth').className = (p==='month' ? 'btn btn-primary' : 'btn btn-light'); document.getElementById('btnBilanYear').className = (p==='year' ? 'btn btn-primary' : 'btn btn-light'); showBilanCommercial(); }
+
 function showBilanCommercial(){
     const mm = document.getElementById('moisFiltre').value;
     const year = mm.split('-')[0];
     let data;
     if(bilanPeriod === 'year'){ data = rows.filter(r => (r.periodMonth || monthKey(r.date)).startsWith(year)); } 
     else { data = rows.filter(r => (r.periodMonth || monthKey(r.date)) === mm); }
+    
+    // Calculs par agence
     let map = {};
     data.forEach(r => {
-        let k = r.agence; if(!map[k]) map[k] = {};
-        let c = r.commercial || "Autre"; if(!map[k][c]) map[k][c] = {rdv:0, total:0};
-        map[k][c].rdv += r.rdv; map[k][c].total += r.netTotal;
+        let k = r.agence; if(!map[k]) map[k] = { rdvTotal:0, details:{} };
+        let c = r.commercial || "Autre"; if(!map[k].details[c]) map[k].details[c] = {rdv:0, total:0};
+        map[k].details[c].rdv += r.rdv; map[k].details[c].total += r.netTotal;
+        map[k].rdvTotal += r.rdv;
     });
 
-    let html = `<div class="table-wrap"><table>
-      <thead><tr>
-         <th style="background:#fff;border-bottom:2px solid #333">Agence</th>
-         <th style="background:#fff;border-bottom:2px solid #333" class="hide-mobile">Commercial</th>
-         <th style="background:#fff;border-bottom:2px solid #333" class="text-right">RDV</th>
-         <th style="background:#fff;border-bottom:2px solid #333" class="text-right">Total HT</th>
-         <th style="background:#fff;border-bottom:2px solid #333" class="text-right">Action</th>
-      </tr></thead><tbody>`;
+    let html = `<div class="table-wrap"><table><thead><tr><th style="background:#fff;border-bottom:2px solid #333">Agence / Objectif</th><th class="hide-mobile" style="background:#fff;border-bottom:2px solid #333">Commercial</th><th class="text-right" style="background:#fff;border-bottom:2px solid #333">RDV</th><th class="text-right" style="background:#fff;border-bottom:2px solid #333">Total HT</th><th class="text-right" style="background:#fff;border-bottom:2px solid #333">Action</th></tr></thead><tbody>`;
     
     Object.keys(map).sort().forEach(ag => {
-        Object.keys(map[ag]).sort().forEach(comm => {
-            const d = map[ag][comm];
+        const clientData = clientsRows.find(c => c.agence === ag);
+        // Objectif GLOBAL agence
+        const objGlobal = clientData ? (clientData.objectif || 0) : 0;
+        const totalFait = map[ag].rdvTotal;
+        
+        let objGlobalHtml = "";
+        if(objGlobal > 0 && bilanPeriod === 'month'){
+            const pct = Math.min(100, (totalFait / objGlobal) * 100);
+            const manque = objGlobal - totalFait;
+            let statusText = manque <= 0 ? `<span class="obj-success">Atteint !</span>` : `<span class="obj-alert">Manque ${manque}</span>`;
+            objGlobalHtml = `
+            <div style="margin-top:4px; margin-bottom:10px;">
+                <div class="obj-text"><span>Global: ${objGlobal}</span> ${statusText}</div>
+                <div class="obj-bar-bg"><div class="obj-bar-fill" style="width:${pct}%"></div></div>
+            </div>`;
+        }
+
+        let first = true;
+        Object.keys(map[ag].details).sort().forEach(comm => {
+            const d = map[ag].details[comm];
+            
+            // Objectif INDIVIDUEL Commercial
+            let objPersoHtml = "";
+            if(clientData && clientData.commerciauxDetails && bilanPeriod === 'month'){
+                const commDetail = clientData.commerciauxDetails.find(cd => cd.name === comm);
+                if(commDetail && commDetail.obj > 0){
+                    const pctP = Math.min(100, (d.rdv / commDetail.obj) * 100);
+                    const mqP = commDetail.obj - d.rdv;
+                    let stP = mqP <= 0 ? `<span class="obj-success">OK</span>` : `<span class="obj-alert">-${mqP}</span>`;
+                    objPersoHtml = `<div style="margin-top:2px; max-width:100px;">
+                        <div class="obj-bar-bg" style="height:4px"><div class="obj-bar-fill" style="width:${pctP}%; background:#8b5cf6"></div></div>
+                        <div class="obj-text">Obj ${commDetail.obj} ${stP}</div>
+                    </div>`;
+                }
+            }
+
             html += `<tr>
-              <td style="font-weight:700;color:#1e3a8a">${ag} <div class="show-mobile" style="display:none;font-size:10px;font-weight:normal;color:#666">${comm}</div></td>
-              <td class="hide-mobile">${comm}</td>
-              <td class="text-right"><b>${d.rdv}</b></td>
-              <td class="text-right">${fmt(d.total)} €</td>
-              <td class="text-right"><button class="btn btn-light" style="padding:4px 10px;font-size:11px" onclick="exportBilanPdf('commercial','${ag}','${comm}')"><i class="fa-solid fa-file-pdf"></i></button></td>
+              <td style="${first?'padding-top:15px':''}">
+                 ${first ? `<div style="font-weight:800;color:#1e3a8a;font-size:1.1rem">${ag}</div>${objGlobalHtml}` : ''}
+                 <div class="show-mobile" style="display:none;font-size:10px;color:#666">${comm}</div>
+                 ${objPersoHtml}
+              </td>
+              <td class="hide-mobile" style="${first?'padding-top:15px':''}">${comm}</td>
+              <td class="text-right" style="${first?'padding-top:15px':''}"><b>${d.rdv}</b></td>
+              <td class="text-right" style="${first?'padding-top:15px':''}">${fmt(d.total)} €</td>
+              <td class="text-right" style="${first?'padding-top:15px':''}"><button class="btn btn-light" style="padding:4px 10px;font-size:11px" onclick="exportBilanPdf('commercial','${ag}','${comm}')"><i class="fa-solid fa-file-pdf"></i></button></td>
             </tr>`;
+            first = false;
         });
     });
     html += `</tbody></table></div>`;
-    
     document.getElementById('bilanContent').innerHTML = html;
     document.getElementById('bilanModal').style.display='flex';
 }
 
 function exportBilanPdf(scope, agence, commercial){
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: (scope==='commercial')?'landscape':'portrait' });
-    const mm = document.getElementById('moisFiltre').value;
-    const jour = document.getElementById('filtreJour').value;
-    const year = mm.split('-')[0];
+    const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: (scope==='commercial')?'landscape':'portrait' });
+    const mm = document.getElementById('moisFiltre').value; const jour = document.getElementById('filtreJour').value; const year = mm.split('-')[0];
     if(CONFIG.logo){ try{ doc.addImage(CONFIG.logo, 'JPEG', 14, 10, 30, 30); }catch(e){} }
     let data, labelP;
     if(jour) {
-        data = rows.filter(r => (r.date === jour || r.periodDate === jour));
-        labelP = "JOURNÉE DU " + formatDate(jour);
-        doc.setFontSize(10); doc.setTextColor(50);
-        doc.text("Bonjour, suite à votre demande, voici le récapitulatif des RDV pour cette date.", 14, 20);
+        data = rows.filter(r => (r.date === jour || r.periodDate === jour)); labelP = "JOURNÉE DU " + formatDate(jour);
+        doc.setFontSize(10); doc.setTextColor(50); doc.text("Bonjour, suite à votre demande, voici le récapitulatif des RDV pour cette date.", 14, 20);
     } else {
         if(bilanPeriod === 'year'){ data = rows.filter(r => (r.periodMonth || monthKey(r.date)).startsWith(year)); labelP = "Année " + year; } 
         else { data = rows.filter(r => (r.periodMonth || monthKey(r.date)) === mm); labelP = labelMonth(mm); }
@@ -798,8 +783,7 @@ function exportBilanPdf(scope, agence, commercial){
     if(scope==='commercial') data = data.filter(r => r.agence === agence && (r.commercial||'Autre') === commercial);
 
     const totalRDV = data.reduce((acc, r) => acc + r.rdv, 0);
-    doc.setFontSize(10); doc.setTextColor(100);
-    doc.text(`Nombre de RDV : ${totalRDV}`, 150, 35);
+    doc.setFontSize(10); doc.setTextColor(100); doc.text(`Nombre de RDV : ${totalRDV}`, 150, 35);
     doc.setFontSize(18); doc.setTextColor(30,58,138); doc.setFont('helvetica','bold');
     doc.text("BILAN DE PRESTATION", 14, 45);
     doc.setFontSize(12); doc.setFont('helvetica','normal'); doc.text(labelP, 14, 52);
@@ -807,67 +791,45 @@ function exportBilanPdf(scope, agence, commercial){
     let cols = ['Date', 'Agence', 'Comm.', 'RDV', 'Tarif'];
     if(CONFIG.tvaActive) { cols.push('HT', 'TVA', 'TTC'); } else { cols.push('Total TTC'); }
     cols.push('Note');
-
     let body = data.map(r => {
         const v = getLineVals(r);
         let row = [formatDate(r.periodDate), r.agence, r.commercial||'', r.rdv, fmt(r.tarif)];
-        if(CONFIG.tvaActive) { 
-            if(v.applicable) row.push(fmt(v.ht), fmt(v.tva), fmt(v.ttc)); else row.push(fmt(v.ht), "-", fmt(v.ht));
-        } else { row.push(fmt(v.ht)); }
+        if(CONFIG.tvaActive) { if(v.applicable) row.push(fmt(v.ht), fmt(v.tva), fmt(v.ttc)); else row.push(fmt(v.ht), "-", fmt(v.ht)); } 
+        else { row.push(fmt(v.ht)); }
         let note = ""; if(r.reporte) note = "REPORTÉ"; if(r.geste) note += ` (Geste ${r.gesteMontant}€)`; row.push(note);
         return row;
     });
-
     doc.autoTable({ head: [cols], body: body, margin: { top: 60 }, theme: 'grid', styles: { fontSize: 9 } });
 
     let totalHT = data.reduce((acc,r)=> acc + r.netTotal, 0);
     let y = doc.lastAutoTable.finalY + 10; doc.setFontSize(12); doc.setTextColor(0);
-    
-    // Positionnement des totaux
     if(CONFIG.tvaActive){
         let totTva = data.reduce((acc,r)=> acc + getLineVals(r).tva, 0);
-        doc.text(`Total HT : ${fmt(totalHT)} €`, 14, y);
-        doc.text(`TVA : ${fmt(totTva)} €`, 80, y);
+        doc.text(`Total HT : ${fmt(totalHT)} €`, 14, y); doc.text(`TVA : ${fmt(totTva)} €`, 80, y);
         doc.setFont(undefined, 'bold'); doc.text(`Total TTC : ${fmt(totalHT + totTva)} €`, 150, y);
-    } else {
-        doc.setFont(undefined, 'bold'); doc.text(`Total TTC : ${fmt(totalHT)} €`, 14, y);
-    }
+    } else { doc.setFont(undefined, 'bold'); doc.text(`Total TTC : ${fmt(totalHT)} €`, 14, y); }
 
-    // AJOUT DE LA SIGNATURE EN BAS DU BILAN GLOBAL
     if(CONFIG.signature){
-         try{
-             let sigY = y + 15; // Un peu en dessous des totaux
-             if(sigY > 250) { doc.addPage(); sigY = 20; }
+         try{ let sigY = y + 15; if(sigY > 250) { doc.addPage(); sigY = 20; }
              doc.addImage(CONFIG.signature, 'PNG', 140, sigY, 50, 25);
-             doc.setFontSize(8); doc.setFont(undefined, 'normal');
-             doc.text("Cachet / Signature :", 140, sigY - 2);
+             doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.text("Cachet / Signature :", 140, sigY - 2);
          }catch(e){} 
     }
-
     doc.save(`Bilan_${scope}_${labelP}.pdf`);
 }
 function exportMonthPdfAll(){ const prev = bilanPeriod; bilanPeriod = 'month'; exportBilanPdf('global'); bilanPeriod = prev; }
-
 function exportSingleRdvPdf(){
-    const id = document.getElementById('editId').value;
-    const r = rows.find(x=>x.id===id); if(!r) return;
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const v = getLineVals(r);
-    
+    const id = document.getElementById('editId').value; const r = rows.find(x=>x.id===id); if(!r) return;
+    const { jsPDF } = window.jspdf; const doc = new jsPDF(); const v = getLineVals(r);
     if(CONFIG.logo){ try{ doc.addImage(CONFIG.logo, 'JPEG', 14, 10, 30, 30); }catch(e){} }
     doc.setFillColor(30, 58, 138); doc.rect(0, 0, 10, 297, 'F');
     doc.setFontSize(22); doc.setTextColor(30,58,138); doc.setFont('helvetica','bold');
     doc.text("BILAN JOURNALIER", 50, 25);
-    doc.setFontSize(10); doc.setTextColor(100); doc.setFont('helvetica','normal');
-    doc.text(`Date : ${formatDate(r.date)}`, 50, 32);
-    doc.setFontSize(10); doc.setTextColor(50);
-    doc.text("Bonjour, suite à votre demande, ci-joint le récapitulatif pour cette mission.", 50, 45);
-    
+    doc.setFontSize(10); doc.setTextColor(100); doc.setFont('helvetica','normal'); doc.text(`Date : ${formatDate(r.date)}`, 50, 32);
+    doc.setFontSize(10); doc.setTextColor(50); doc.text("Bonjour, suite à votre demande, ci-joint le récapitulatif pour cette mission.", 50, 45);
     const head = [['Date', 'Agence', 'Comm', 'RDV', 'Tarif', (v.applicable ? 'Total HT' : 'Total TTC')]];
     const body = [[ formatDate(r.date), r.agence, r.commercial||'-', r.rdv, fmt(r.tarif)+' €', fmt(v.ht)+' €' ]];
     doc.autoTable({ head: head, body: body, startY: 60, margin:{left:20}, theme: 'grid' });
-    
     if(CONFIG.signature){ try{ doc.addImage(CONFIG.signature, 'PNG', 20, doc.lastAutoTable.finalY+20, 50, 25); }catch(e){} }
     doc.save(`Bilan_Journalier_${r.agence}_${r.date}.pdf`);
 }
@@ -892,37 +854,80 @@ function updateSelects(){
 function renderClientsTable(){
     const tbody = document.getElementById('tbodyClients');
     tbody.innerHTML = clientsRows.map(c=>`<tr>
-        <td>${c.agence} <div class="show-mobile" style="display:none;font-size:10px;color:#666">${c.commerciaux?c.commerciaux.join(', '):''}</div></td>
-        <td class="hide-mobile">${c.commerciaux?c.commerciaux.join(', '):''}</td>
+        <td>${c.agence} <div class="show-mobile" style="display:none;font-size:10px;color:#666">${getCommDisplay(c)}</div></td>
+        <td class="hide-mobile">${getCommDisplay(c)}</td>
         <td class="hide-mobile">${c.tarif||''}€</td>
+        <td>${c.objectif || '-'}</td>
         <td class="text-right">
             <button class="btn btn-light btn-circle-mob" onclick="editClient('${c.id}')"><i class="fa-solid fa-pen"></i></button>
             <button class="btn btn-circle-mob" style="background:#fee2e2;color:#b91c1c;border-color:#fca5a5;margin-left:5px" onclick="deleteClient('${c.id}')"><i class="fa-solid fa-trash"></i></button>
         </td>
     </tr>`).join('');
 }
+function getCommDisplay(c){
+    if(c.commerciauxDetails) return c.commerciauxDetails.map(x=>`${x.name} (Obj:${x.obj})`).join(', ');
+    if(c.commerciaux) return c.commerciaux.join(', ');
+    return '';
+}
+
+// LOGIQUE POUR LE FORMULAIRE CLIENT AVEC EDITION DIRECTE
+let currentCommList = [];
 function editClient(id){
     const c=clientsRows.find(x=>x.id===id);
     document.getElementById('clientAgence').value=c.agence;
-    document.getElementById('clientCommerciaux').value=c.commerciaux?c.commerciaux.join(','):'';
     document.getElementById('clientTarif').value=c.tarif;
+    document.getElementById('clientObjectif').value=c.objectif || '';
     document.getElementById('clientEditId').value=c.id;
+    
+    currentCommList = [];
+    if(c.commerciauxDetails){
+        currentCommList = JSON.parse(JSON.stringify(c.commerciauxDetails));
+    } else if(c.commerciaux){
+        currentCommList = c.commerciaux.map(name => ({ name, obj:0 }));
+    }
+    renderCommList();
 }
-async function deleteClient(id){
-    if(!confirm("Supprimer cette agence ?")) return;
-    await db.collection('clients').doc(id).delete();
+function addBlankComm(){
+    currentCommList.push({ name: '', obj: 0 });
+    renderCommList();
 }
+function removeCommFromList(idx){
+    currentCommList.splice(idx, 1);
+    renderCommList();
+}
+function updateComm(idx, field, val){
+    if(field === 'obj') val = Number(val);
+    currentCommList[idx][field] = val;
+}
+function renderCommList(){
+    const div = document.getElementById('commListPreview');
+    div.innerHTML = currentCommList.map((c, i) => `
+       <div class="comm-row-edit">
+          <input type="text" value="${c.name}" oninput="updateComm(${i}, 'name', this.value)" placeholder="Nom">
+          <input type="number" value="${c.obj}" oninput="updateComm(${i}, 'obj', this.value)" placeholder="Obj">
+          <button type="button" style="color:red;border:none;background:none" onclick="removeCommFromList(${i})"><i class="fa-solid fa-trash"></i></button>
+       </div>
+    `).join('');
+}
+
+async function deleteClient(id){ if(!confirm("Supprimer cette agence ?")) return; await db.collection('clients').doc(id).delete(); }
 document.getElementById('clientForm').onsubmit=(e)=>{
     e.preventDefault();
     const id=document.getElementById('clientEditId').value;
+    
+    // Nettoyage des noms vides
+    const cleanedList = currentCommList.filter(c => c.name.trim() !== "");
+    const commerciauxSimple = cleanedList.map(c => c.name);
+    
     const data={
         agence:document.getElementById('clientAgence').value,
-        commerciaux:document.getElementById('clientCommerciaux').value.split(',').map(s=>s.trim()).filter(s=>s),
-        tarif:Number(document.getElementById('clientTarif').value)
+        commerciaux: commerciauxSimple, 
+        commerciauxDetails: cleanedList,
+        tarif:Number(document.getElementById('clientTarif').value),
+        objectif:Number(document.getElementById('clientObjectif').value)
     };
-    if(id) db.collection('clients').doc(id).update(data);
-    else db.collection('clients').add(data);
-    e.target.reset(); document.getElementById('clientEditId').value='';
+    if(id) db.collection('clients').doc(id).update(data); else db.collection('clients').add(data);
+    e.target.reset(); document.getElementById('clientEditId').value=''; currentCommList=[]; renderCommList();
 }
 
 function switchTab(t){ 
@@ -933,19 +938,15 @@ function switchTab(t){
 }
 function closeModal(id){ document.getElementById(id).style.display='none'; }
 function clearFilters(){ document.getElementById('filtreAgence').value=''; document.getElementById('filtreCommercial').value=''; document.getElementById('filtreJour').value=''; renderTable(); }
-async function deleteSelected(){
-    if(!confirm('Supprimer ?'))return;
-    const batch=db.batch();
-    document.querySelectorAll('.chk:checked').forEach(c=>{ batch.delete(db.collection('rdv_ajouts').doc(c.dataset.id)); });
-    await batch.commit();
-}
+async function deleteSelected(){ if(!confirm('Supprimer ?'))return; const batch=db.batch(); document.querySelectorAll('.chk:checked').forEach(c=>{ batch.delete(db.collection('rdv_ajouts').doc(c.dataset.id)); }); await batch.commit(); }
 function toggleAll(src){ document.querySelectorAll('.chk').forEach(c=>c.checked=src.checked); }
 
 document.getElementById('moisFiltre').addEventListener('change',renderTable);
 document.getElementById('filtreAgence').addEventListener('change',renderTable);
 document.getElementById('filtreCommercial').addEventListener('change',renderTable);
 
-// Le "checkAccess" est maintenant géré par auth.onAuthStateChanged
+window.onload=checkAccess;
+async function checkAccess(){ document.getElementById('lockScreen').style.display='flex'; }
 </script>
 </body>
 </html>
